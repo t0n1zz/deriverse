@@ -1,101 +1,221 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+import { useEffect } from 'react';
+import { useTradeStore } from '@/stores/tradeStore';
+import { StatsCard } from '@/components/dashboard/StatsCard';
+import { PnLChart } from '@/components/dashboard/PnLChart';
+import { DrawdownChart } from '@/components/dashboard/DrawdownChart';
+import { LongShortPie } from '@/components/dashboard/LongShortPie';
+import { HourlyPerformance } from '@/components/dashboard/HourlyPerformance';
+import { MarketBreakdown } from '@/components/dashboard/MarketBreakdown';
+import { FeeBreakdown } from '@/components/dashboard/FeeBreakdown';
+import {
+  DollarSign,
+  TrendingUp,
+  Target,
+  Activity,
+  BarChart3,
+  AlertTriangle,
+  ArrowUpRight,
+  ArrowDownRight,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+export default function DashboardPage() {
+  const { analytics, trades, loadMockData, isLoading } = useTradeStore();
+
+  useEffect(() => {
+    if (trades.length === 0 && !isLoading) {
+      loadMockData();
+    }
+  }, [trades.length, isLoading, loadMockData]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading analytics...</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+    );
+  }
+
+  if (!analytics) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <p className="text-muted-foreground">No trade data available</p>
+        <Button onClick={loadMockData}>Load Mock Data</Button>
+      </div>
+    );
+  }
+
+  const formatCurrency = (value: number) => {
+    const prefix = value >= 0 ? '+' : '';
+    return `${prefix}$${Math.abs(value).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+  };
+
+  const formatPercent = (value: number) => {
+    const prefix = value >= 0 ? '+' : '';
+    return `${prefix}${value.toFixed(2)}%`;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">Your trading performance at a glance</p>
+        </div>
+        <Button variant="outline" onClick={loadMockData}>Refresh Data</Button>
+      </div>
+
+      {/* Top Stats */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatsCard
+          title="Total PnL"
+          value={formatCurrency(analytics.totalPnL)}
+          subtitle={formatPercent(analytics.totalPnLPercent)}
+          icon={DollarSign}
+          valueClassName={analytics.totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}
+        />
+        <StatsCard
+          title="Win Rate"
+          value={`${analytics.winRate.toFixed(1)}%`}
+          subtitle={`${analytics.winningTrades}W / ${analytics.losingTrades}L`}
+          icon={Target}
+          valueClassName={analytics.winRate >= 50 ? 'text-green-500' : 'text-yellow-500'}
+        />
+        <StatsCard
+          title="Total Trades"
+          value={analytics.totalTrades}
+          subtitle={`${trades.filter(t => t.status === 'open').length} open`}
+          icon={Activity}
+        />
+        <StatsCard
+          title="Profit Factor"
+          value={analytics.profitFactor === Infinity ? '∞' : analytics.profitFactor.toFixed(2)}
+          subtitle="Gross profit / loss"
+          icon={BarChart3}
+          valueClassName={analytics.profitFactor >= 1 ? 'text-green-500' : 'text-red-500'}
+        />
+      </div>
+
+      {/* Tabs for different views */}
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="markets">Markets</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          {/* PnL and Position Charts */}
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <PnLChart height={300} />
+            </div>
+            <LongShortPie height={250} />
+          </div>
+
+          {/* Drawdown */}
+          <DrawdownChart height={180} />
+
+          {/* Risk Metrics */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatsCard
+              title="Max Drawdown"
+              value={formatPercent(-analytics.maxDrawdownPercent)}
+              subtitle={formatCurrency(-analytics.maxDrawdown)}
+              icon={AlertTriangle}
+              valueClassName="text-red-500"
+            />
+            <StatsCard
+              title="Largest Win"
+              value={analytics.largestWin ? formatCurrency(analytics.largestWin.pnl ?? 0) : '-'}
+              subtitle={analytics.largestWin?.market}
+              icon={ArrowUpRight}
+              valueClassName="text-green-500"
+            />
+            <StatsCard
+              title="Largest Loss"
+              value={analytics.largestLoss ? formatCurrency(analytics.largestLoss.pnl ?? 0) : '-'}
+              subtitle={analytics.largestLoss?.market}
+              icon={ArrowDownRight}
+              valueClassName="text-red-500"
+            />
+            <StatsCard
+              title="Expectancy"
+              value={formatCurrency(analytics.expectancy)}
+              subtitle="Expected per trade"
+              icon={TrendingUp}
+              valueClassName={analytics.expectancy >= 0 ? 'text-green-500' : 'text-red-500'}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="performance" className="space-y-4">
+          {/* Hourly and Position Analysis */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <HourlyPerformance height={300} />
+            <div className="space-y-4">
+              <StatsCard
+                title="Long PnL"
+                value={formatCurrency(analytics.longPnL)}
+                subtitle={`${analytics.longCount} trades`}
+                valueClassName={analytics.longPnL >= 0 ? 'text-green-500' : 'text-red-500'}
+              />
+              <StatsCard
+                title="Short PnL"
+                value={formatCurrency(analytics.shortPnL)}
+                subtitle={`${analytics.shortCount} trades`}
+                valueClassName={analytics.shortPnL >= 0 ? 'text-green-500' : 'text-red-500'}
+              />
+              <StatsCard
+                title="Risk/Reward"
+                value={analytics.riskRewardRatio.toFixed(2)}
+                subtitle="Avg win / Avg loss"
+              />
+            </div>
+          </div>
+
+          {/* Position Pie */}
+          <LongShortPie height={250} />
+        </TabsContent>
+
+        <TabsContent value="markets" className="space-y-4">
+          {/* Market and Fee Analysis */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <MarketBreakdown height={300} />
+            <FeeBreakdown height={300} />
+          </div>
+
+          {/* Volume Stats */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <StatsCard
+              title="Total Volume"
+              value={`$${analytics.totalVolume.toLocaleString('en-US', { maximumFractionDigits: 0 })}`}
+              subtitle="Cumulative volume"
+            />
+            <StatsCard
+              title="Avg Trade Size"
+              value={`$${analytics.avgTradeSize.toLocaleString('en-US', { maximumFractionDigits: 0 })}`}
+              subtitle="Mean position size"
+            />
+            <StatsCard
+              title="Total Fees"
+              value={formatCurrency(-analytics.totalFees)}
+              subtitle={`Avg ${formatCurrency(-analytics.avgFeePerTrade)}/trade`}
+              valueClassName="text-yellow-500"
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
