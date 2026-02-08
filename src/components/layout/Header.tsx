@@ -7,7 +7,6 @@ import { WalletButton } from '@/components/wallet/WalletButton';
 import {
   LayoutDashboard,
   BookOpen,
-  Settings,
   TrendingUp
 } from 'lucide-react';
 

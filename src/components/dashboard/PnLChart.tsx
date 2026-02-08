@@ -40,7 +40,7 @@ export function PnLChart({ height = 350 }: PnLChartProps) {
     );
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: { fullDate: string; pnl: number; cumulativePnL: number; equity: number } }> }) => {
     if (!active || !payload?.[0]) return null;
 
     const data = payload[0].payload;

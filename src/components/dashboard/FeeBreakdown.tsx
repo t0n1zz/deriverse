@@ -42,7 +42,7 @@ export function FeeBreakdown({ height = 200 }: FeeBreakdownProps) {
       .sort((a, b) => b.total - a.total);
   }, [trades]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value?: number }>; label?: string }) => {
     if (!active || !payload?.[0]) return null;
 
     return (

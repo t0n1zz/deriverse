@@ -4,7 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 export function WalletButton() {
-  const { connected, publicKey } = useWallet();
+  const { connected } = useWallet();
 
   return (
     <div className="wallet-adapter-button-wrapper">

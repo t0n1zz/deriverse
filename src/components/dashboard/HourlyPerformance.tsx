@@ -34,7 +34,7 @@ export function HourlyPerformance({ height = 250 }: HourlyPerformanceProps) {
     return fullData;
   }, [trades]);
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: { period: string; trades: number; pnl: number; winRate: number } }> }) => {
     if (!active || !payload?.[0]) return null;
 
     const data = payload[0].payload;

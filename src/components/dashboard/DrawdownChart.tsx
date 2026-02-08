@@ -39,7 +39,7 @@ export function DrawdownChart({ height = 200 }: DrawdownChartProps) {
     );
   }
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: { date: string; fullDate: string; drawdown: number; drawdownNeg: number } }> }) => {
     if (!active || !payload?.[0]) return null;
 
     const data = payload[0].payload;

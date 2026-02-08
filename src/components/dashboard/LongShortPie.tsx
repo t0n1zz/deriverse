@@ -35,7 +35,7 @@ export function LongShortPie({ height = 250 }: LongShortPieProps) {
     );
   }
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: { name: string; value: number; pnl: number; color: string } }> }) => {
     if (!active || !payload?.[0]) return null;
 
     const data = payload[0].payload;
@@ -59,9 +59,9 @@ export function LongShortPie({ height = 250 }: LongShortPieProps) {
     );
   };
 
-  const CustomLegend = ({ payload }: any) => (
+  const CustomLegend = ({ payload }: { payload?: Array<{ color: string; value: string }> }) => (
     <div className="flex justify-center gap-6 mt-4">
-      {payload?.map((entry: any, index: number) => (
+      {payload?.map((entry, index: number) => (
         <div key={index} className="flex items-center gap-2">
           <div
             className="w-3 h-3 rounded-full"

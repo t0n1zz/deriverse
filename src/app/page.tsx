@@ -9,6 +9,7 @@ import { LongShortPie } from '@/components/dashboard/LongShortPie';
 import { HourlyPerformance } from '@/components/dashboard/HourlyPerformance';
 import { MarketBreakdown } from '@/components/dashboard/MarketBreakdown';
 import { FeeBreakdown } from '@/components/dashboard/FeeBreakdown';
+import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap';
 import {
   DollarSign,
   TrendingUp,
@@ -186,6 +187,9 @@ export default function DashboardPage() {
 
           {/* Position Pie */}
           <LongShortPie height={250} />
+
+          {/* Calendar Heatmap */}
+          <CalendarHeatmap daysToShow={35} />
         </TabsContent>
 
         <TabsContent value="markets" className="space-y-4">

@@ -41,7 +41,7 @@ export function MarketBreakdown({ height = 250 }: MarketBreakdownProps) {
       .sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl));
   }, [trades]);
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: { fullMarket: string; trades: number; pnl: number; volume: number } }> }) => {
     if (!active || !payload?.[0]) return null;
 
     const data = payload[0].payload;
