@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { WalletButton } from '@/components/wallet/WalletButton';
+import { ConnectionStatus } from '@/components/wallet/ConnectionStatus';
 import {
   LayoutDashboard,
   BookOpen,
@@ -51,9 +52,13 @@ export function Header() {
           })}
         </nav>
 
-        {/* Wallet */}
-        <WalletButton />
+        {/* Wallet & Status */}
+        <div className="flex items-center gap-3">
+          <ConnectionStatus />
+          <WalletButton />
+        </div>
       </div>
     </header>
   );
 }
+
