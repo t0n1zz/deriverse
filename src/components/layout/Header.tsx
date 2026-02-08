@@ -1,14 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { WalletButton } from '@/components/wallet/WalletButton';
 import { ConnectionStatus } from '@/components/wallet/ConnectionStatus';
+import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
   BookOpen,
-  TrendingUp
+  TrendingUp,
+  Menu,
+  X
 } from 'lucide-react';
 
 const navigation = [
@@ -18,6 +22,7 @@ const navigation = [
 
 export function Header() {
   const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -25,11 +30,12 @@ export function Header() {
         {/* Logo */}
         <div className="flex items-center gap-2">
           <TrendingUp className="h-6 w-6 text-primary" />
-          <span className="text-lg font-bold">Deriverse Analytics</span>
+          <span className="text-lg font-bold hidden sm:inline">Deriverse Analytics</span>
+          <span className="text-lg font-bold sm:hidden">Deriverse</span>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex items-center gap-1">
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-1">
           {navigation.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -52,13 +58,60 @@ export function Header() {
           })}
         </nav>
 
-        {/* Wallet & Status */}
-        <div className="flex items-center gap-3">
+        {/* Desktop Wallet & Status */}
+        <div className="hidden md:flex items-center gap-3">
           <ConnectionStatus />
           <WalletButton />
         </div>
+
+        {/* Mobile Menu Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-border bg-background/95 backdrop-blur">
+          <div className="container py-4 space-y-4">
+            {/* Mobile Navigation */}
+            <nav className="flex flex-col gap-1">
+              {navigation.map((item) => {
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      'flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Mobile Wallet Section */}
+            <div className="flex items-center justify-between pt-3 border-t border-border">
+              <ConnectionStatus />
+              <WalletButton />
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
-
