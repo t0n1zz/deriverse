@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { WalletButton } from '@/components/wallet/WalletButton';
 import { ConnectionStatus } from '@/components/wallet/ConnectionStatus';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
@@ -59,7 +60,8 @@ export function Header() {
         </nav>
 
         {/* Desktop Wallet & Status */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
+          <ThemeToggle />
           <ConnectionStatus />
           <WalletButton />
         </div>
@@ -106,7 +108,10 @@ export function Header() {
 
             {/* Mobile Wallet Section */}
             <div className="flex items-center justify-between pt-3 border-t border-border">
-              <ConnectionStatus />
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <ConnectionStatus />
+              </div>
               <WalletButton />
             </div>
           </div>
