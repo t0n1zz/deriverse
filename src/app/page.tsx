@@ -10,6 +10,8 @@ import { HourlyPerformance } from '@/components/dashboard/HourlyPerformance';
 import { MarketBreakdown } from '@/components/dashboard/MarketBreakdown';
 import { FeeBreakdown } from '@/components/dashboard/FeeBreakdown';
 import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap';
+import { DataSourceToggle } from '@/components/dashboard/DataSourceToggle';
+import { LoadingCard } from '@/components/ui/loading';
 import {
   DollarSign,
   TrendingUp,
@@ -34,11 +36,20 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading analytics...</p>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">Your trading performance at a glance</p>
+          </div>
         </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <LoadingCard height="120px" />
+          <LoadingCard height="120px" />
+          <LoadingCard height="120px" />
+          <LoadingCard height="120px" />
+        </div>
+        <LoadingCard height="350px" text="Loading charts..." />
       </div>
     );
   }
@@ -73,7 +84,7 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">Your trading performance at a glance</p>
         </div>
-        <Button variant="outline" onClick={loadMockData}>Refresh Data</Button>
+        <DataSourceToggle />
       </div>
 
       {/* Top Stats */}
