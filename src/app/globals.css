@@ -76,3 +76,88 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Wallet Adapter Button Styling */
+.wallet-adapter-button {
+  background-color: hsl(var(--secondary)) !important;
+  color: hsl(var(--secondary-foreground)) !important;
+  border-radius: 0.5rem !important;
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  height: 2.5rem !important;
+  padding: 0 1rem !important;
+  transition: all 0.15s ease !important;
+}
+
+.wallet-adapter-button:hover {
+  background-color: hsl(var(--muted)) !important;
+}
+
+.wallet-adapter-button-trigger {
+  background-color: hsl(var(--secondary)) !important;
+}
+
+.wallet-adapter-button[data-state="connected"],
+.wallet-adapter-button:not(.wallet-adapter-button-trigger) {
+  background-color: hsl(var(--secondary)) !important;
+  color: hsl(var(--secondary-foreground)) !important;
+}
+
+/* Wallet Modal Styling */
+.wallet-adapter-modal-wrapper {
+  background-color: hsl(var(--background)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.75rem !important;
+}
+
+.wallet-adapter-modal-title {
+  color: hsl(var(--foreground)) !important;
+  font-family: inherit !important;
+}
+
+.wallet-adapter-modal-list {
+  margin: 0 !important;
+}
+
+.wallet-adapter-modal-list li {
+  background-color: transparent !important;
+}
+
+.wallet-adapter-modal-list-more {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.wallet-adapter-modal-button-close {
+  background-color: hsl(var(--muted)) !important;
+}
+
+.wallet-adapter-modal-button-close:hover {
+  background-color: hsl(var(--accent)) !important;
+}
+
+.wallet-adapter-modal-button-close svg {
+  fill: hsl(var(--foreground)) !important;
+}
+
+/* Dropdown Menu Styling */
+.wallet-adapter-dropdown {
+  font-family: inherit !important;
+}
+
+.wallet-adapter-dropdown-list {
+  background-color: hsl(var(--popover)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1) !important;
+}
+
+.wallet-adapter-dropdown-list-item {
+  color: hsl(var(--popover-foreground)) !important;
+  font-family: inherit !important;
+}
+
+.wallet-adapter-dropdown-list-item:hover {
+  background-color: hsl(var(--accent)) !important;
+}
+
