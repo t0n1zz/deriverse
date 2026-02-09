@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useTradeStore } from '@/stores/tradeStore';
 import { useClientData, useAllPerpPositions } from '@/lib/deriverse';
@@ -15,6 +15,7 @@ interface DataSourceToggleProps {
 }
 
 export function DataSourceToggle({ onDataSourceChange }: DataSourceToggleProps) {
+  const [mounted, setMounted] = useState(false);
   const [dataSource, setDataSource] = useState<DataSource>('mock');
   const { connected } = useWallet();
   const { isLoading: storeLoading, loadMockData } = useTradeStore();
@@ -22,6 +23,11 @@ export function DataSourceToggle({ onDataSourceChange }: DataSourceToggleProps) 
   const { isLoading: perpLoading, refetch: refetchPerp } = useAllPerpPositions();
 
   const isLoading = storeLoading || (dataSource === 'live' && (clientLoading || perpLoading));
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSourceChange = (source: DataSource) => {
     setDataSource(source);
@@ -40,6 +46,15 @@ export function DataSourceToggle({ onDataSourceChange }: DataSourceToggleProps) 
       refetchPerp();
     }
   };
+
+  // Return skeleton during SSR
+  if (!mounted) {
+    return (
+      <div className="flex items-center gap-2">
+        <div className="flex items-center rounded-lg border border-border bg-muted/50 p-1 h-9 w-32" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-2">
