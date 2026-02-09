@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useTradeStore } from '@/stores/tradeStore';
+import { usePrivacy } from '@/contexts/PrivacyContext';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { PnLChart } from '@/components/dashboard/PnLChart';
 import { DrawdownChart } from '@/components/dashboard/DrawdownChart';
@@ -28,6 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function DashboardPage() {
   const { analytics, trades, loadMockData, isLoading } = useTradeStore();
+  const { hideBalances } = usePrivacy();
 
   useEffect(() => {
     if (trades.length === 0 && !isLoading) {
@@ -65,6 +67,9 @@ export default function DashboardPage() {
   }
 
   const formatCurrency = (value: number) => {
+    if (hideBalances) {
+      return '****';
+    }
     const prefix = value >= 0 ? '+' : '';
     return `${prefix}$${Math.abs(value).toLocaleString('en-US', {
       minimumFractionDigits: 2,

@@ -7,6 +7,7 @@ import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { WalletError } from '@solana/wallet-adapter-base';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { PrivacyProvider } from '@/contexts/PrivacyContext';
 
 // Import wallet adapter styles
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -73,7 +74,9 @@ export function Providers({ children }: ProvidersProps) {
         disableTransitionOnChange
       >
         <QueryClientProvider client={queryClient}>
-          {children}
+          <PrivacyProvider>
+            {children}
+          </PrivacyProvider>
         </QueryClientProvider>
       </ThemeProvider>
     );
@@ -87,13 +90,15 @@ export function Providers({ children }: ProvidersProps) {
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
-        <ConnectionProvider endpoint={endpoint}>
-          <WalletProvider wallets={wallets} autoConnect onError={onError}>
-            <WalletModalProvider>
-              {children}
-            </WalletModalProvider>
-          </WalletProvider>
-        </ConnectionProvider>
+        <PrivacyProvider>
+          <ConnectionProvider endpoint={endpoint}>
+            <WalletProvider wallets={wallets} autoConnect onError={onError}>
+              <WalletModalProvider>
+                {children}
+              </WalletModalProvider>
+            </WalletProvider>
+          </ConnectionProvider>
+        </PrivacyProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

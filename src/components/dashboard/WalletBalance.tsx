@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { usePrivacy } from '@/contexts/PrivacyContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wallet, RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
@@ -12,6 +13,7 @@ export function WalletBalance() {
   const [mounted, setMounted] = useState(false);
   const { connection } = useConnection();
   const { publicKey, connected } = useWallet();
+  const { hideBalances } = usePrivacy();
   const [solBalance, setSolBalance] = useState<number>(0);
   const [solPrice, setSolPrice] = useState<number>(0);
   const [priceChange, setPriceChange] = useState<number>(0);
@@ -130,7 +132,7 @@ export function WalletBalance() {
         {/* Total USD Value */}
         <div>
           <p className="text-2xl font-bold text-green-500">
-            ${totalUsdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {hideBalances ? '****' : `$${totalUsdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           </p>
           <p className="text-xs text-muted-foreground">Total Balance (USD)</p>
         </div>
@@ -152,7 +154,7 @@ export function WalletBalance() {
           </div>
           <div className="text-right">
             <p className="text-sm font-medium">
-              ${(solBalance * solPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {hideBalances ? '****' : `$${(solBalance * solPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             </p>
             <Badge
               variant="outline"
