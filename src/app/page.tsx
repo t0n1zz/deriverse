@@ -128,19 +128,17 @@ export default function DashboardPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          {/* PnL and Position Charts */}
+          {/* PnL, Wallet Balance, Position Distribution */}
           <div className="grid gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-2 h-[400px]">
-              <PnLChart height={400} />
+            <div className="lg:col-span-2 space-y-4">
+              <PnLChart height={300} />
+              <DrawdownChart height={150} />
             </div>
-            <div className="space-y-4 h-[400px]">
+            <div className="space-y-4">
               <WalletBalance />
-              <LongShortPie height={180} />
+              <LongShortPie height={260} />
             </div>
           </div>
-
-          {/* Drawdown */}
-          <DrawdownChart height={180} />
 
           {/* Risk Metrics */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
