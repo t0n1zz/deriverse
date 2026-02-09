@@ -1,20 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wallet, RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-interface TokenBalance {
-  symbol: string;
-  balance: number;
-  usdValue: number;
-  price: number;
-  change24h?: number;
-}
 
 export function WalletBalance() {
   const [mounted, setMounted] = useState(false);
@@ -32,7 +24,7 @@ export function WalletBalance() {
   }, []);
 
   // Fetch SOL price from CoinGecko
-  const fetchSolPrice = async () => {
+  const fetchSolPrice = useCallback(async () => {
     try {
       const response = await fetch(
         'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd&include_24hr_change=true'
@@ -47,10 +39,10 @@ export function WalletBalance() {
       // Fallback price if API fails
       setSolPrice(150); // Approximate SOL price
     }
-  };
+  }, []);
 
   // Fetch wallet balance
-  const fetchBalance = async () => {
+  const fetchBalance = useCallback(async () => {
     if (!publicKey || !connection) return;
 
     setIsLoading(true);
@@ -63,7 +55,7 @@ export function WalletBalance() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [publicKey, connection]);
 
   // Initial load and refresh
   useEffect(() => {
@@ -71,7 +63,7 @@ export function WalletBalance() {
       fetchSolPrice();
       fetchBalance();
     }
-  }, [connected, publicKey, connection]);
+  }, [connected, publicKey, fetchSolPrice, fetchBalance]);
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
@@ -83,7 +75,7 @@ export function WalletBalance() {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [connected, publicKey]);
+  }, [connected, fetchSolPrice, fetchBalance]);
 
   const handleRefresh = () => {
     fetchSolPrice();
