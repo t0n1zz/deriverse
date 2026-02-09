@@ -13,6 +13,7 @@ import { FeeBreakdown } from '@/components/dashboard/FeeBreakdown';
 import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap';
 import { DataSourceToggle } from '@/components/dashboard/DataSourceToggle';
 import { WalletBalance } from '@/components/dashboard/WalletBalance';
+import { SharePnLCard } from '@/components/dashboard/SharePnLCard';
 import { LoadingCard } from '@/components/ui/loading';
 import {
   DollarSign,
@@ -90,7 +91,10 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">Your trading performance at a glance</p>
         </div>
-        <DataSourceToggle />
+        <div className="flex items-center gap-2">
+          <SharePnLCard />
+          <DataSourceToggle />
+        </div>
       </div>
 
       {/* Top Stats */}
