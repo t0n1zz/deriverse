@@ -11,6 +11,7 @@ import { MarketBreakdown } from '@/components/dashboard/MarketBreakdown';
 import { FeeBreakdown } from '@/components/dashboard/FeeBreakdown';
 import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap';
 import { DataSourceToggle } from '@/components/dashboard/DataSourceToggle';
+import { WalletBalance } from '@/components/dashboard/WalletBalance';
 import { LoadingCard } from '@/components/ui/loading';
 import {
   DollarSign,
@@ -132,7 +133,10 @@ export default function DashboardPage() {
             <div className="lg:col-span-2">
               <PnLChart height={300} />
             </div>
-            <LongShortPie height={250} />
+            <div className="space-y-4">
+              <WalletBalance />
+              <LongShortPie height={200} />
+            </div>
           </div>
 
           {/* Drawdown */}
