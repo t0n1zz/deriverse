@@ -131,14 +131,15 @@ export default function DashboardPage() {
           {/* PnL, Wallet Balance, Position Distribution */}
           <div className="grid gap-4 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-4">
-              <PnLChart height={300} />
-              <DrawdownChart height={150} />
+              <PnLChart height={500} />
             </div>
             <div className="space-y-4">
               <WalletBalance />
               <LongShortPie height={260} />
             </div>
           </div>
+
+          <DrawdownChart height={150} />
 
           {/* Risk Metrics */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
