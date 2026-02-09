@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletAddress } from '@/contexts/WalletAddressContext';
 import { useTradeStore } from '@/stores/tradeStore';
 import { useClientData, useAllPerpPositions } from '@/lib/deriverse';
 import { Button } from '@/components/ui/button';
@@ -17,11 +17,12 @@ interface DataSourceToggleProps {
 export function DataSourceToggle({ onDataSourceChange }: DataSourceToggleProps) {
   const [mounted, setMounted] = useState(false);
   const [dataSource, setDataSource] = useState<DataSource>('mock');
-  const { connected } = useWallet();
+  const { walletAddress, isValidAddress } = useWalletAddress();
   const { isLoading: storeLoading, loadMockData } = useTradeStore();
   const { isLoading: clientLoading, refetch: refetchClient } = useClientData();
   const { isLoading: perpLoading, refetch: refetchPerp } = useAllPerpPositions();
 
+  const hasValidWallet = !!walletAddress && isValidAddress;
   const isLoading = storeLoading || (dataSource === 'live' && (clientLoading || perpLoading));
 
   // Prevent hydration mismatch
@@ -72,7 +73,7 @@ export function DataSourceToggle({ onDataSourceChange }: DataSourceToggleProps) 
           variant={dataSource === 'live' ? 'secondary' : 'ghost'}
           size="sm"
           onClick={() => handleSourceChange('live')}
-          disabled={!connected}
+          disabled={!hasValidWallet}
           className="gap-1.5 h-7"
         >
           <Cloud className="h-3.5 w-3.5" />
@@ -90,9 +91,9 @@ export function DataSourceToggle({ onDataSourceChange }: DataSourceToggleProps) 
         <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
       </Button>
 
-      {dataSource === 'live' && !connected && (
+      {dataSource === 'live' && !hasValidWallet && (
         <Badge variant="outline" className="text-xs text-muted-foreground">
-          Connect wallet for live data
+          Enter wallet address for live data
         </Badge>
       )}
     </div>

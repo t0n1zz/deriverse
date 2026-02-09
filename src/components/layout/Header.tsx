@@ -4,8 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { WalletButton } from '@/components/wallet/WalletButton';
-import { ConnectionStatus } from '@/components/wallet/ConnectionStatus';
+import { WalletAddressInput } from '@/components/wallet/WalletAddressInput';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { PrivacyToggle } from '@/components/ui/privacy-toggle';
 import { Button } from '@/components/ui/button';
@@ -60,12 +59,11 @@ export function Header() {
           })}
         </nav>
 
-        {/* Desktop Wallet & Status */}
+        {/* Desktop Wallet Address & Controls */}
         <div className="hidden md:flex items-center gap-2">
           <PrivacyToggle />
           <ThemeToggle />
-          <ConnectionStatus />
-          <WalletButton />
+          <WalletAddressInput />
         </div>
 
         {/* Mobile Menu Button */}
@@ -111,10 +109,10 @@ export function Header() {
             {/* Mobile Wallet Section */}
             <div className="flex items-center justify-between pt-3 border-t border-border">
               <div className="flex items-center gap-2">
+                <PrivacyToggle />
                 <ThemeToggle />
-                <ConnectionStatus />
               </div>
-              <WalletButton />
+              <WalletAddressInput />
             </div>
           </div>
         </div>

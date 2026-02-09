@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletAddress } from '@/contexts/WalletAddressContext';
 import { getDeriverseService } from './service';
 import { useEffect, useState } from 'react';
 
@@ -35,21 +35,21 @@ export function useDeriverseEngine() {
   return { isReady, error };
 }
 
-// Hook to get client data (positions, balances, etc.)
+// Hook to get client data (positions, balances, etc.) using pasted wallet address
 export function useClientData() {
-  const { publicKey, connected } = useWallet();
+  const { walletAddress, isValidAddress } = useWalletAddress();
   const { isReady: engineReady } = useDeriverseEngine();
 
   return useQuery({
-    queryKey: ['clientData', publicKey?.toBase58()],
+    queryKey: ['clientData', walletAddress],
     queryFn: async () => {
-      if (!publicKey) return null;
+      if (!walletAddress) return null;
 
       const service = getDeriverseService();
-      await service.setWallet(publicKey.toBase58());
+      await service.setWallet(walletAddress);
       return service.getClientData();
     },
-    enabled: !!publicKey && connected && engineReady,
+    enabled: !!walletAddress && isValidAddress && engineReady,
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // Refetch every minute
   });
@@ -57,24 +57,24 @@ export function useClientData() {
 
 // Hook to get perp position details for a specific instrument
 export function usePerpPosition(instrId: number, clientId: number | undefined) {
-  const { publicKey, connected } = useWallet();
+  const { walletAddress, isValidAddress } = useWalletAddress();
   const { isReady: engineReady } = useDeriverseEngine();
 
   return useQuery({
-    queryKey: ['perpPosition', publicKey?.toBase58(), instrId, clientId],
+    queryKey: ['perpPosition', walletAddress, instrId, clientId],
     queryFn: async () => {
       if (!clientId) return null;
 
       const service = getDeriverseService();
       return service.getPerpPositionInfo(instrId, clientId);
     },
-    enabled: !!publicKey && connected && engineReady && clientId !== undefined,
+    enabled: !!walletAddress && isValidAddress && engineReady && clientId !== undefined,
     staleTime: 15000, // 15 seconds for position data
     refetchInterval: 30000,
   });
 }
 
-// Hook to aggregate all perp positions for the connected wallet
+// Hook to aggregate all perp positions for the wallet address
 export function useAllPerpPositions() {
   const { data: clientData } = useClientData();
   const { isReady: engineReady } = useDeriverseEngine();

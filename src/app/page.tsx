@@ -12,7 +12,6 @@ import { MarketBreakdown } from '@/components/dashboard/MarketBreakdown';
 import { FeeBreakdown } from '@/components/dashboard/FeeBreakdown';
 import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap';
 import { DataSourceToggle } from '@/components/dashboard/DataSourceToggle';
-import { WalletBalance } from '@/components/dashboard/WalletBalance';
 import { SharePnLCard } from '@/components/dashboard/SharePnLCard';
 import { LoadingCard } from '@/components/ui/loading';
 import {
@@ -137,14 +136,13 @@ export default function DashboardPage() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          {/* PnL, Wallet Balance, Position Distribution */}
+          {/* PnL and Position Distribution */}
           <div className="grid gap-4 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-4">
               <PnLChart height={500} />
             </div>
             <div className="space-y-4">
-              <WalletBalance />
-              <LongShortPie height={260} />
+              <LongShortPie height={320} />
             </div>
           </div>
 
