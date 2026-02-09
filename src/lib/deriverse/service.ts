@@ -6,13 +6,16 @@ export class DeriverseService {
   private engine: Engine | null = null;
   private rpcUrl: string;
   private programId: string;
+  private version: number;
 
   constructor(
     rpcUrl: string = process.env.NEXT_PUBLIC_RPC_URL || 'https://api.devnet.solana.com',
-    programId: string = process.env.NEXT_PUBLIC_DERIVERSE_PROGRAM_ID || 'Drvrseg8AQLP8B96DBGmHRjFGviFNYTkHueY9g3k27Gu'
+    programId: string = process.env.NEXT_PUBLIC_DERIVERSE_PROGRAM_ID || 'Drvrseg8AQLP8B96DBGmHRjFGviFNYTkHueY9g3k27Gu',
+    version: number = parseInt(process.env.NEXT_PUBLIC_DERIVERSE_VERSION || '12', 10)
   ) {
     this.rpcUrl = rpcUrl;
     this.programId = programId;
+    this.version = version;
   }
 
   async initialize(): Promise<boolean> {
@@ -20,6 +23,7 @@ export class DeriverseService {
       const rpc = createSolanaRpc(this.rpcUrl);
       this.engine = new Engine(rpc, {
         programId: this.programId as `${string}`,
+        version: this.version,
         uiNumbers: true,
         commitment: 'confirmed',
       });
