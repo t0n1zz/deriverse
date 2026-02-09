@@ -1,8 +1,8 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Wallet } from 'lucide-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { Wallet, Search } from 'lucide-react';
+import { WalletAddressInput } from '@/components/wallet/WalletAddressInput';
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -30,19 +30,19 @@ export function EmptyState({ icon, title, description, action, className }: Empt
   );
 }
 
-export function ConnectWalletPrompt({ height = '300px' }: { height?: string }) {
+export function EnterWalletPrompt({ height = '300px' }: { height?: string }) {
   return (
     <div
       className="flex items-center justify-center rounded-lg border border-border bg-card"
       style={{ height }}
     >
       <EmptyState
-        icon={<Wallet className="h-12 w-12" />}
-        title="Connect Your Wallet"
-        description="Connect your Solana wallet to view your trading analytics and position history from Deriverse."
+        icon={<Search className="h-12 w-12" />}
+        title="Enter a Wallet Address"
+        description="Paste any Solana wallet address to view trading analytics and position history from Deriverse."
         action={
-          <div className="wallet-adapter-button-wrapper mt-2">
-            <WalletMultiButton />
+          <div className="mt-2">
+            <WalletAddressInput />
           </div>
         }
       />
