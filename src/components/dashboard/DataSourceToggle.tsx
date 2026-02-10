@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useWalletAddress } from '@/contexts/WalletAddressContext';
 import { useTradeStore } from '@/stores/tradeStore';
 import { useTradeHistory, useClientData } from '@/lib/deriverse';
-import { Badge } from '@/components/ui/badge';
+
 import { Database, Cloud } from 'lucide-react';
 
 export function DataSourceToggle() {
@@ -12,7 +12,7 @@ export function DataSourceToggle() {
   const {
     dataSource,
     setDataSource,
-    isLoading: storeLoading,
+
     loadMockData,
     setTrades,
     setLoading,
@@ -23,7 +23,7 @@ export function DataSourceToggle() {
   const { data: tradeHistory, isLoading: historyLoading, refetch: refetchHistory } = useTradeHistory();
 
   const hasValidWallet = !!walletAddress && isValidAddress;
-  const isLoading = storeLoading || (dataSource === 'live' && (clientLoading || historyLoading));
+
 
   // Prevent hydration mismatch
   useEffect(() => {

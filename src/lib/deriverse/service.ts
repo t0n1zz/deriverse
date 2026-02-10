@@ -160,7 +160,7 @@ export class DeriverseService {
 
     let total = 0;
 
-    for (const token of client.tokens.values()) {
+    for (const token of Array.from(client.tokens.values())) {
       const { tokenId, amount } = token;
       if (tokenId === this.baseTokenId) {
         // Base currency balance (e.g. USDC)

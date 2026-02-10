@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { TradeTable } from '@/components/journal/TradeTable';
 import { TradeFilters } from '@/components/journal/TradeFilters';
@@ -11,7 +11,7 @@ import { useTradeHistory } from '@/lib/deriverse';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Download, RefreshCw } from 'lucide-react';
 
-export default function JournalPage() {
+function JournalContent() {
   const {
     trades,
     filteredTrades,
@@ -199,6 +199,23 @@ export default function JournalPage() {
           <TradeTable trades={displayTrades} pageSize={15} />
         </div>
       </div>
+    </div>
+  );
+}
+
+export default function JournalPage() {
+  return (
+    <div className="container py-8">
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground">Loading journal...</p>
+          </div>
+        </div>
+      }>
+        <JournalContent />
+      </Suspense>
     </div>
   );
 }
