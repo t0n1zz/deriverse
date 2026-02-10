@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTradeStore } from '@/stores/tradeStore';
 import { useWalletAddress } from '@/contexts/WalletAddressContext';
 import { usePrivacy } from '@/contexts/PrivacyContext';
@@ -30,13 +31,37 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function DashboardPage() {
   const { analytics, trades, isLoading, dataSource } = useTradeStore();
-  const { walletAddress, isValidAddress } = useWalletAddress();
+  const { walletAddress, isValidAddress, setWalletAddress } = useWalletAddress();
   const { hideBalances } = usePrivacy();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // When URL has ?wallet=... sync it into the wallet context on first load / when it changes
+  useEffect(() => {
+    const urlWallet = searchParams.get('wallet');
+    if (!urlWallet) return;
+    if (urlWallet !== walletAddress) {
+      setWalletAddress(urlWallet);
+    }
+  }, [searchParams, walletAddress, setWalletAddress]);
+
+  // When a valid wallet is set in context, reflect it back into the URL (?wallet=...)
+  useEffect(() => {
+    if (!mounted) return;
+    if (!walletAddress || !isValidAddress) return;
+
+    const current = searchParams.get('wallet');
+    if (current === walletAddress) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('wallet', walletAddress);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [mounted, walletAddress, isValidAddress, searchParams, router, setWalletAddress]);
 
   // Show nothing during SSR to prevent hydration mismatch
   if (!mounted) {
@@ -125,6 +150,7 @@ export default function DashboardPage() {
     return `${prefix}${value.toFixed(2)}%`;
   };
 
+  // (Client token balances are displayed separately, using Deriverse client data.)
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -180,12 +206,12 @@ export default function DashboardPage() {
 
         <TabsContent value="overview" className="space-y-4">
           {/* PnL and Position Distribution */}
-          <div className="grid gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-4">
-              <PnLChart height={500} />
+          <div className="grid gap-4 lg:grid-cols-3 items-stretch min-h-[260px] md:min-h-[320px]">
+            <div className="lg:col-span-2 h-full">
+              <PnLChart />
             </div>
-            <div className="space-y-4">
-              <LongShortPie height={320} />
+            <div className="h-full">
+              <LongShortPie />
             </div>
           </div>
 

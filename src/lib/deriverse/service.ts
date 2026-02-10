@@ -1,4 +1,4 @@
-import { createSolanaRpc } from '@solana/kit';
+import { createSolanaRpc, address } from '@solana/kit';
 import { Engine, GetClientDataResponse, GetClientPerpOrdersInfoResponse } from '@deriverse/kit';
 import { fetchTradeHistory } from './history';
 import { Trade } from '@/types';
@@ -9,6 +9,7 @@ export class DeriverseService {
   private rpcUrl: string;
   private programId: string;
   private version: number;
+  private tokenSymbols: Map<number, string> = new Map();
 
   constructor(
     rpcUrl: string = process.env.NEXT_PUBLIC_RPC_URL || 'https://api.devnet.solana.com',
@@ -29,7 +30,31 @@ export class DeriverseService {
         uiNumbers: true,
         commitment: 'confirmed',
       });
-      return await this.engine.initialize();
+      const ok = await this.engine.initialize();
+      if (!ok) return false;
+
+      // Derive known token symbols (e.g. SOL / USDC) from configured mints
+      try {
+        const solMint = process.env.NEXT_PUBLIC_TOKEN_SOL;
+        const usdcMint = process.env.NEXT_PUBLIC_TOKEN_USDC;
+
+        if (solMint) {
+          const solId = await this.engine.getTokenId(address(solMint as `${string}`));
+          if (solId !== null) {
+            this.tokenSymbols.set(solId, 'SOL');
+          }
+        }
+        if (usdcMint) {
+          const usdcId = await this.engine.getTokenId(address(usdcMint as `${string}`));
+          if (usdcId !== null) {
+            this.tokenSymbols.set(usdcId, 'USDC');
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to derive token symbols from mints:', e);
+      }
+
+      return true;
     } catch (error) {
       console.error('Failed to initialize Deriverse engine:', error);
       return false;
@@ -83,7 +108,7 @@ export class DeriverseService {
       const { Connection } = await import('@solana/web3.js');
       const connection = new Connection(this.rpcUrl, 'confirmed');
 
-      return await fetchTradeHistory(connection, this.engine, walletAddress);
+      return await fetchTradeHistory(connection, this.engine, walletAddress, this.tokenSymbols);
     } catch (error) {
       console.error('Failed to get trade history:', error);
       return [];
@@ -100,6 +125,14 @@ export class DeriverseService {
 
   isReady(): boolean {
     return this.engine !== null;
+  }
+
+  /**
+   * Resolve a Deriverse token ID into a human-readable symbol when possible.
+   * Falls back to "Token {id}" if we don't know it.
+   */
+  getTokenSymbol(tokenId: number): string {
+    return this.tokenSymbols.get(tokenId) ?? `Token ${tokenId}`;
   }
 }
 

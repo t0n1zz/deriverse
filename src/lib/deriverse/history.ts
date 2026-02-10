@@ -18,31 +18,20 @@ function isLogType<T>(log: LogMessage, type: LogType): log is T & LogMessage {
   return log.tag === type;
 }
 
-/** Token ID to symbol for display (devnet: SOL/USDC typical). Override via env NEXT_PUBLIC_TOKEN_SYMBOL_0=SOL etc. */
-const DEFAULT_TOKEN_SYMBOLS: Record<number, string> = {
-  0: 'SOL',
-  1: 'USDC',
-};
-
-function getTokenSymbol(tokenId: number): string {
-  const fromEnv =
-    typeof process !== 'undefined'
-      ? process.env?.[`NEXT_PUBLIC_TOKEN_SYMBOL_${tokenId}`]
-      : undefined;
-  return (typeof fromEnv === 'string' ? fromEnv : null) ?? DEFAULT_TOKEN_SYMBOLS[tokenId] ?? `Token${tokenId}`;
-}
-
 /** Human-readable market name e.g. "SOL-USDC Perps" or "SOL-USDC Spot". */
 function getInstrumentDisplayName(
   engine: Engine,
   instrId: number,
-  marketType: 'perpetual' | 'spot'
+  marketType: 'perpetual' | 'spot',
+  symbolMap?: Map<number, string>
 ): string {
   const instr = (engine as { instruments?: Map<number, { header: { assetTokenId: number; crncyTokenId: number } }> })
     .instruments?.get(instrId);
   if (!instr?.header) return marketType === 'perpetual' ? `PERP-${instrId}` : `SPOT-${instrId}`;
-  const asset = getTokenSymbol(instr.header.assetTokenId);
-  const crncy = getTokenSymbol(instr.header.crncyTokenId);
+  const asset =
+    symbolMap?.get(instr.header.assetTokenId) ?? `Token${instr.header.assetTokenId}`;
+  const crncy =
+    symbolMap?.get(instr.header.crncyTokenId) ?? `Token${instr.header.crncyTokenId}`;
   const suffix = marketType === 'perpetual' ? ' Perps' : ' Spot';
   return `${asset}-${crncy}${suffix}`;
 }
@@ -191,6 +180,7 @@ export async function fetchTradeHistory(
   connection: Connection,
   engine: Engine,
   walletAddress: string,
+   symbolMap?: Map<number, string>,
   limit: number = 500
 ): Promise<Trade[]> {
   const pubkey = new PublicKey(walletAddress);
@@ -273,7 +263,7 @@ export async function fetchTradeHistory(
       if (isLogType<PerpFillOrderReportModel>(log, LogType.perpFillOrder)) {
         const fill = log;
         const instrId = placedPerpInstrId ?? 0;
-        const marketName = getInstrumentDisplayName(engine, instrId, 'perpetual');
+        const marketName = getInstrumentDisplayName(engine, instrId, 'perpetual', symbolMap);
         const side = fill.side === 0 ? 'long' : 'short';
 
         const trade: Trade = {
@@ -315,7 +305,7 @@ export async function fetchTradeHistory(
           id: `${signature}-funding-${funding.instrId}`,
           txSignature: signature,
           timestamp: timestamp,
-          market: getInstrumentDisplayName(engine, funding.instrId, 'perpetual'),
+          market: getInstrumentDisplayName(engine, funding.instrId, 'perpetual', symbolMap),
           marketType: 'perpetual',
           side: 'long',
           orderType: 'market',
@@ -344,7 +334,7 @@ export async function fetchTradeHistory(
       if (isLogType<SpotFillOrderReportModel>(log, LogType.spotFillOrder)) {
         const fill = log;
         const instrId = placedSpotInstrId ?? 0;
-        const marketName = getInstrumentDisplayName(engine, instrId, 'spot');
+        const marketName = getInstrumentDisplayName(engine, instrId, 'spot', symbolMap);
         const side = fill.side === 0 ? 'long' : 'short'; // 0 = Buy? Need to verify. Assuming standard.
 
         const trade: Trade = {

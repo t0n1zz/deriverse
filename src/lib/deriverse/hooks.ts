@@ -131,3 +131,5 @@ export function useAllPerpPositions() {
     refetchInterval: 60000,
   });
 }
+
+// (Valuation context removed – we avoid approximate account value to prevent confusion)

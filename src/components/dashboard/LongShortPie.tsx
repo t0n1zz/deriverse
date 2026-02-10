@@ -12,10 +12,10 @@ import {
 } from 'recharts';
 
 interface LongShortPieProps {
-  height?: number;
+  className?: string;
 }
 
-export function LongShortPie({ height = 250 }: LongShortPieProps) {
+export function LongShortPie({ className }: LongShortPieProps) {
   const analytics = useTradeStore(state => state.analytics);
 
   const data = useMemo(() => {
@@ -29,8 +29,11 @@ export function LongShortPie({ height = 250 }: LongShortPieProps) {
 
   if (data.length === 0 || (data[0].value === 0 && data[1].value === 0)) {
     return (
-      <div className="flex items-center justify-center h-[250px] border border-border rounded-lg bg-card">
-        <p className="text-muted-foreground">No data available</p>
+      <div className={`rounded-lg border border-border bg-card p-4 flex flex-col h-full ${className ?? ''}`}>
+        <h3 className="text-lg font-semibold mb-2">Position Distribution</h3>
+        <div className="flex-1 flex items-center justify-center min-h-[200px]">
+          <p className="text-muted-foreground">No data available</p>
+        </div>
       </div>
     );
   }
@@ -76,9 +79,10 @@ export function LongShortPie({ height = 250 }: LongShortPieProps) {
   );
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className={`rounded-lg border border-border bg-card p-4 flex flex-col h-full ${className ?? ''}`}>
       <h3 className="text-lg font-semibold mb-2">Position Distribution</h3>
-      <ResponsiveContainer width="100%" height={height}>
+      <div className="flex-1">
+      <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={data}
@@ -97,6 +101,7 @@ export function LongShortPie({ height = 250 }: LongShortPieProps) {
           <Legend content={<CustomLegend />} />
         </PieChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }

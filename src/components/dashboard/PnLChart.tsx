@@ -17,10 +17,10 @@ import {
 import { format } from 'date-fns';
 
 interface PnLChartProps {
-  height?: number;
+  className?: string;
 }
 
-export function PnLChart({ height = 350 }: PnLChartProps) {
+export function PnLChart({ className }: PnLChartProps) {
   const trades = useTradeStore(state => state.trades);
 
   const chartData = useMemo(() => {
@@ -34,8 +34,11 @@ export function PnLChart({ height = 350 }: PnLChartProps) {
 
   if (chartData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[350px] border border-border rounded-lg bg-card">
-        <p className="text-muted-foreground">No trade data for chart</p>
+      <div className={`rounded-lg border border-border bg-card p-4 flex flex-col h-full ${className ?? ''}`}>
+        <h3 className="text-lg font-semibold mb-4">PnL History</h3>
+        <div className="flex-1 flex items-center justify-center min-h-[200px]">
+          <p className="text-muted-foreground">No trade data for chart</p>
+        </div>
       </div>
     );
   }
@@ -71,9 +74,10 @@ export function PnLChart({ height = 350 }: PnLChartProps) {
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className={`rounded-lg border border-border bg-card p-4 flex flex-col h-full ${className ?? ''}`}>
       <h3 className="text-lg font-semibold mb-4">PnL History</h3>
-      <ResponsiveContainer width="100%" height={height}>
+      <div className="flex-1">
+        <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
           <XAxis
@@ -123,6 +127,7 @@ export function PnLChart({ height = 350 }: PnLChartProps) {
           />
         </ComposedChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }
