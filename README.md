@@ -50,7 +50,7 @@ A comprehensive trading analytics dashboard for the [Deriverse](https://derivers
 - **Styling**: Tailwind CSS + shadcn/ui
 - **Charts**: Recharts
 - **State**: Zustand (with persistence)
-- **Solana**: @solana/wallet-adapter-react
+- **Solana**: @solana/web3.js
 - **SDK**: @deriverse/kit
 
 ## 📦 Installation
