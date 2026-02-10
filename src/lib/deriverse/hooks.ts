@@ -91,8 +91,8 @@ export function useAllPerpPositions() {
 
       for (const [instrId, perpData] of perpEntries) {
         positions.push({
-          instrId,
           ...perpData,
+          instrId, // Override with the map key to ensure it's the correct instrId
         });
       }
 
