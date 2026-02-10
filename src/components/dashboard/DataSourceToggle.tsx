@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useWalletAddress } from '@/contexts/WalletAddressContext';
 import { useTradeStore } from '@/stores/tradeStore';
 import { useClientData, useAllPerpPositions } from '@/lib/deriverse';
-import { getDeriverseService } from '@/lib/deriverse/service';
 import { Trade } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,13 +18,9 @@ function transformLiveDataToTrades(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   perpPositions: any[]
 ): Trade[] {
-  const service = getDeriverseService();
-  const instruments = service.getInstruments();
-
   return perpPositions.map((position, index) => {
     const instrId = position.instrId;
-    const instrument = instruments?.get(instrId);
-    const marketName = instrument?.name || `PERP-${instrId}`;
+    const marketName = `PERP-${instrId}`;
 
     // Determine side from position quantity
     const isLong = (position.baseAssetAmount ?? position.qty ?? 0) >= 0;
