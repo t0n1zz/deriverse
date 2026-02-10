@@ -77,4 +77,4 @@ Before you start, make sure you have:
 
 - **"Hydration Error"**: Usually happens if the HTML generated on the server doesn't match the browser. Refreshing often fixes it in dev.
 - **"Module not found"**: Did you run `npm install`?
-- **Charts look empty**: Ensure you have connected a wallet that actually has trade history on Deriverse, or use `?mode=mock` in the URL to see sample data.
+- **Charts look empty**: Ensure you have entered a wallet address that actually has trade history on Deriverse, or use `?mode=mock` in the URL to see sample data.

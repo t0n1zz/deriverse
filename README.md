@@ -38,8 +38,9 @@ A comprehensive trading analytics dashboard for the [Deriverse](https://derivers
 - **Goals Tracking** - Set and monitor monthly trading targets
 
 
-### Wallet Integration
-- **Phantom & Solflare Support** - Connect your Solana wallet
+### Wallet Address Input
+- **100% Safe & Read-Only** - Simply enter any Solana wallet address to track performance.
+- **No Connection Required** - We do not ask you to connect your wallet or sign transactions.
 - **Solana Explorer Links** - Direct links to transaction details
 
 ## 🛠️ Tech Stack

@@ -16,7 +16,7 @@ The application follows a **Client-Side Data Fetching** model, enhanced with Ser
 ## 🔄 Data Flow
 
 ### 1. Connecting & Fetching
-When a user connects their wallet (or enters an address):
+When a user enters a wallet address (no connection required):
 
 1.  **Context**: The `WalletAddressContext` updates with the new public key.
 2.  **Effect**: A `useEffect` hook in `page.tsx` (or `journal/page.tsx`) triggers a fetch.
