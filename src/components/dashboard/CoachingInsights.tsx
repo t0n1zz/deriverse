@@ -15,7 +15,7 @@ interface CoachingInsightsProps {
 
 export function CoachingInsights({ className }: CoachingInsightsProps) {
   const { analytics, trades, filteredTrades } = useTradeStore();
-  const { hideBalances } = usePrivacy();
+
   const { maxTradesPerDay, maxLossPerDay, targetRPerTrade } = useGoalsStore();
 
   const insight = useMemo(() => {
