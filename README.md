@@ -137,7 +137,10 @@ This dashboard was built for the Deriverse Analytics Competition, focusing on:
 - **Win Rate**: `winningTrades / totalClosedTrades * 100`
 - **Profit Factor**: Measures efficiency - "for every $1 lost, how many do I make?". `grossProfit / grossLoss`. Aim for > 1.5.
 - **Expectancy**: The average amount you can expect to win (or lose) per trade. `(winRate * avgWin) - (lossRate * avgLoss)`. Positive means profitable over time.
-- **Max Drawdown**: Largest peak-to-trough equity decline
+- **Expectancy (R)**: Your expectancy normalized by risk. `Average(PnL / AverageLoss)`. 0.5R means you make half your risk unit per trade on average.
+- **R-Multiple**: The return of a single trade in terms of risk. `Trade PnL / Average Loss`. A +2R trade made 2x your average loss.
+- **Open Exposure**: The total value of your open positions (including leverage) relative to your equity. `(Total Open Notional / Equity) * 100`.
+- **MAX Drawdown**: Largest peak-to-trough equity decline
 - **Risk/Reward**: `averageWin / averageLoss`
 
 ## 🚢 Deployment
