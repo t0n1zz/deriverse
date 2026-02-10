@@ -10,8 +10,10 @@ A comprehensive trading analytics dashboard for the [Deriverse](https://derivers
 - **Real-time PnL Tracking** - Cumulative profit/loss visualization with daily bars
 - **Win Rate Analysis** - Track your winning and losing trades
 - **Drawdown Chart** - Monitor equity decline from peak
+- **Equity Tracking** - Real-time estimation of account equity including token balances
 - **Position Distribution** - Long vs Short position breakdown
 - **Hourly Performance** - See your best and worst trading hours
+- **Data Refresh** - Manual sync for latest on-chain data
 - **Market Breakdown** - PnL analysis by trading pair
 - **Fee Analysis** - Trading and funding fee breakdown
 - **Daily Calendar Heatmap** - GitHub-style performance visualization
@@ -87,6 +89,24 @@ src/
 └── types/
     └── index.ts          # TypeScript definitions
 ```
+
+## 🏗️ Architecture
+
+The application is built with a focus on **performance**, **modularity**, and **user experience**.
+
+### Data Flow
+- **Service Layer (`src/lib/deriverse`)**: A singleton `DeriverseService` manages direct RPC communication with the Solana blockchain. It handles account data fetching, trade history parsing, and token price aggregation.
+- **State Management (`src/stores/tradeStore.ts`)**: Uses **Zustand** for global state.
+  - **Persistence**: User preferences (filters, data source mode) are persisted to local storage.
+  - **Volatility**: Trade data and analytics are kept in memory to ensure freshness and reduce storage overhead.
+- **Hybrid Data Source**: The app seamlessly toggles between:
+  - **Mock Mode**: Generates realistic dummy data for demonstration.
+  - **Live Mode**: Fetches real on-chain data from the connected wallet.
+
+### performance Optimization
+- **Suspense boundaries** for concurrent data fetching and smoother transitions.
+- **Client-side caching** of trade history to minimize RPC calls.
+- **Virtualized lists** (pagination) for handling large trade histories efficiently.
 
 ## 🎯 Competition Criteria
 
