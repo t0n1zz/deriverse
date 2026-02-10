@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Wallet, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { WalletAddressInput } from '@/components/wallet/WalletAddressInput';
 
 interface EmptyStateProps {
