@@ -26,6 +26,13 @@ export function DataSourceToggle() {
     setMounted(true);
   }, []);
 
+  // Sync store loading state with history fetching
+  useEffect(() => {
+    if (dataSource === 'live') {
+      setLoading(historyLoading || clientLoading);
+    }
+  }, [dataSource, historyLoading, clientLoading, setLoading]);
+
   // When live trade history arrives, push it into the trade store
   useEffect(() => {
     if (dataSource !== 'live') return;
@@ -36,6 +43,7 @@ export function DataSourceToggle() {
         setTrades(tradeHistory);
       } else if (clientData && !historyLoading) {
         // Client exists but no trade fills found
+        // Only clear if we actually confirmed no history
         setTrades([]);
       }
     } catch (err) {

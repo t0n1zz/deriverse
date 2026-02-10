@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   keywords: ["Deriverse", "Solana", "DEX", "Trading", "Analytics", "Dashboard"],
 };
 
+import { ClientBufferPolyfill } from "@/components/ClientBufferPolyfill";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -23,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased bg-background text-foreground min-h-screen`} suppressHydrationWarning>
+        <ClientBufferPolyfill />
         <Providers>
           <Header />
           <main className="container py-6">
