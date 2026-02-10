@@ -132,16 +132,13 @@ This dashboard was built for the Deriverse Analytics Competition, focusing on:
 5. **Code Quality** - TypeScript, modular architecture
 6. **Security** - Read-only operations, no private key access
 
-## 📊 Analytics Calculations
+## 📚 Documentation
 
-- **Win Rate**: `winningTrades / totalClosedTrades * 100`
-- **Profit Factor**: Measures efficiency - "for every $1 lost, how many do I make?". `grossProfit / grossLoss`. Aim for > 1.5.
-- **Expectancy**: The average amount you can expect to win (or lose) per trade. `(winRate * avgWin) - (lossRate * avgLoss)`. Positive means profitable over time.
-- **Expectancy (R)**: Your expectancy normalized by risk. `Average(PnL / AverageLoss)`. 0.5R means you make half your risk unit per trade on average.
-- **R-Multiple**: The return of a single trade in terms of risk. `Trade PnL / Average Loss`. A +2R trade made 2x your average loss.
-- **Open Exposure**: The total value of your open positions (including leverage) relative to your equity. `(Total Open Notional / Equity) * 100`.
-- **MAX Drawdown**: Largest peak-to-trough equity decline
-- **Risk/Reward**: `averageWin / averageLoss`
+We have detailed guides to help you understand every part of the project:
+
+- **[Getting Started](./docs/getting-started.md)**: Beginner-friendly guide to setting up the project and understanding the tech stack (React, Next.js, Solana).
+- **[Architecture & SDK](./docs/architecture.md)**: Deep dive into the codebase structure, state management, and how we use the `@deriverse/kit` SDK.
+- **[Analytics Explained](./docs/analytics.md)**: Simple explanations of the math behind Profit Factor, R-Multiples, and other trading metrics.
 
 ## 🚢 Deployment
 
