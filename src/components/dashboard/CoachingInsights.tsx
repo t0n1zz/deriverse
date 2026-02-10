@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useTradeStore } from '@/stores/tradeStore';
 import { useGoalsStore } from '@/stores/goalsStore';
-import { usePrivacy } from '@/contexts/PrivacyContext';
+
 import { calculateTimePerformance } from '@/lib/analytics/calculator';
 import { Lightbulb, HeartPulse, Target } from 'lucide-react';
 
