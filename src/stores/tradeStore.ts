@@ -15,6 +15,7 @@ interface TradeState {
   filters: TradeFilters;
   isLoading: boolean;
   error: string | null;
+  autoRefresh: boolean;
 
   // Actions
   setDataSource: (dataSource: 'mock' | 'live') => void;
@@ -29,6 +30,7 @@ interface TradeState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearTrades: () => void;
+  setAutoRefresh: (enabled: boolean) => void;
 }
 
 const defaultFilters: TradeFilters = {
@@ -97,6 +99,7 @@ export const useTradeStore = create<TradeState>()(
       filters: defaultFilters,
       isLoading: false,
       error: null,
+      autoRefresh: false,
 
       // Actions
       setDataSource: (dataSource) => set({ dataSource }),
@@ -180,6 +183,8 @@ export const useTradeStore = create<TradeState>()(
         analytics: null,
         error: null,
       }),
+
+      setAutoRefresh: (enabled) => set({ autoRefresh: enabled }),
     }),
     {
       name: 'deriverse-trades',
@@ -188,6 +193,7 @@ export const useTradeStore = create<TradeState>()(
       partialize: (state) => ({
         dataSource: state.dataSource,
         filters: state.filters,
+        autoRefresh: state.autoRefresh,
       }),
     }
   )

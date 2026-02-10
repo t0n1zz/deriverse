@@ -8,7 +8,6 @@ import { WalletAddressInput } from '@/components/wallet/WalletAddressInput';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { PrivacyToggle } from '@/components/ui/privacy-toggle';
 import { DataSourceToggle } from '@/components/dashboard/DataSourceToggle';
-import { DataSourceRefreshButton } from '@/components/dashboard/DataSourceRefreshButton';
 import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
@@ -115,7 +114,6 @@ export function Header() {
               <PrivacyToggle />
               <ThemeToggle />
               <DataSourceToggle />
-              <DataSourceRefreshButton />
             </div>
             <WalletAddressInput />
             </div>
