@@ -16,20 +16,21 @@ import { format } from 'date-fns';
 
 interface DrawdownChartProps {
   height?: number;
+  initialEquity?: number;
 }
 
-export function DrawdownChart({ height = 200 }: DrawdownChartProps) {
+export function DrawdownChart({ height = 200, initialEquity = 0 }: DrawdownChartProps) {
   const trades = useTradeStore(state => state.trades);
 
   const chartData = useMemo(() => {
-    const data = generatePnLChartData(trades, 10000);
+    const data = generatePnLChartData(trades, initialEquity);
     return data.map(point => ({
       ...point,
       date: format(new Date(point.timestamp), 'MMM dd'),
       fullDate: format(new Date(point.timestamp), 'MMM dd, yyyy HH:mm'),
       drawdownNeg: -point.drawdown, // Negative for visual
     }));
-  }, [trades]);
+  }, [trades, initialEquity]);
 
   if (chartData.length === 0) {
     return (

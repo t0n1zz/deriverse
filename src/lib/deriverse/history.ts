@@ -18,6 +18,12 @@ function isLogType<T>(log: LogMessage, type: LogType): log is T & LogMessage {
   return log.tag === type;
 }
 
+// Known Deriverse devnet instruments -> human-readable symbols.
+// Mirrors the mapping used in https://github.com/cryptoduke01/deriverse-dashboard
+const INSTR_ID_TO_SYMBOL: Record<number, string> = {
+  0: 'SOL-USDC',
+};
+
 /** Human-readable market name e.g. "SOL-USDC Perps" or "SOL-USDC Spot". */
 function getInstrumentDisplayName(
   engine: Engine,
@@ -25,14 +31,16 @@ function getInstrumentDisplayName(
   marketType: 'perpetual' | 'spot',
   symbolMap?: Map<number, string>
 ): string {
+  const staticBase = INSTR_ID_TO_SYMBOL[instrId];
+  const suffix = marketType === 'perpetual' ? ' Perps' : ' Spot';
+  if (staticBase) return `${staticBase}${suffix}`;
+
   const instr = (engine as { instruments?: Map<number, { header: { assetTokenId: number; crncyTokenId: number } }> })
     .instruments?.get(instrId);
   if (!instr?.header) return marketType === 'perpetual' ? `PERP-${instrId}` : `SPOT-${instrId}`;
-  const asset =
-    symbolMap?.get(instr.header.assetTokenId) ?? `Token${instr.header.assetTokenId}`;
-  const crncy =
-    symbolMap?.get(instr.header.crncyTokenId) ?? `Token${instr.header.crncyTokenId}`;
-  const suffix = marketType === 'perpetual' ? ' Perps' : ' Spot';
+
+  const asset = symbolMap?.get(instr.header.assetTokenId) ?? `Token${instr.header.assetTokenId}`;
+  const crncy = symbolMap?.get(instr.header.crncyTokenId) ?? `Token${instr.header.crncyTokenId}`;
   return `${asset}-${crncy}${suffix}`;
 }
 
@@ -298,30 +306,8 @@ export async function fetchTradeHistory(
         }
       }
 
-      // HANDLE FUNDING
-      if (isLogType<PerpFundingReportModel>(log, LogType.perpFunding)) {
-        const funding = log;
-        const fundingTrade: Trade = {
-          id: `${signature}-funding-${funding.instrId}`,
-          txSignature: signature,
-          timestamp: timestamp,
-          market: getInstrumentDisplayName(engine, funding.instrId, 'perpetual', symbolMap),
-          marketType: 'perpetual',
-          side: 'long',
-          orderType: 'market',
-          entryPrice: 0,
-          exitPrice: 0,
-          quantity: 0,
-          leverage: null,
-          pnl: funding.funding,
-          pnlPercent: 0,
-          fees: { trading: 0, funding: -funding.funding },
-          status: 'closed',
-          duration: null,
-          annotations: ['Funding Payment'],
-        };
-        txTrades.push(fundingTrade);
-      }
+      // (Funding payments are currently excluded from the journal to keep it simple;
+      // they still affect on-chain PnL but don't appear as separate trades.)
 
       // --- SPOT ---
 

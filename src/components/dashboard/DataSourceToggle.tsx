@@ -4,11 +4,8 @@ import { useState, useEffect } from 'react';
 import { useWalletAddress } from '@/contexts/WalletAddressContext';
 import { useTradeStore } from '@/stores/tradeStore';
 import { useTradeHistory, useClientData } from '@/lib/deriverse';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Database, Cloud, RefreshCw } from 'lucide-react';
-
-type DataSource = 'mock' | 'live';
+import { Database, Cloud } from 'lucide-react';
 
 export function DataSourceToggle() {
   const [mounted, setMounted] = useState(false);
@@ -32,6 +29,26 @@ export function DataSourceToggle() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Automatically choose data source based on whether a valid wallet is present.
+  // - With a valid wallet → live mode (on-chain data)
+  // - Without a valid wallet → mock mode (demo data)
+  useEffect(() => {
+    if (!mounted) return;
+
+    if (hasValidWallet) {
+      if (dataSource !== 'live') {
+        setDataSource('live');
+        setLoading(true);
+        refetchHistory();
+      }
+    } else {
+      if (dataSource !== 'mock') {
+        setDataSource('mock');
+        loadMockData();
+      }
+    }
+  }, [mounted, hasValidWallet, dataSource, setDataSource, setLoading, refetchHistory, loadMockData]);
 
   // Sync store loading state with history fetching
   useEffect(() => {
@@ -58,91 +75,30 @@ export function DataSourceToggle() {
     }
   }, [dataSource, tradeHistory, historyLoading, setTrades, setError]);
 
-  const handleSourceChange = (source: DataSource) => {
-    setDataSource(source);
-    if (source === 'mock') {
-      loadMockData();
-    } else if (source === 'live') {
-      setLoading(true);
-      refetchHistory();
-    }
-  };
-
-  const handleRefresh = () => {
-    if (dataSource === 'mock') {
-      loadMockData();
-    } else {
-      setLoading(true);
-      refetchHistory();
-    }
-  };
-
   // Return skeleton during SSR
   if (!mounted) {
     return (
       <div className="flex items-center gap-2">
-        <div className="flex items-center rounded-lg border border-border bg-muted/50 p-1 h-9 w-32" />
+        <div className="flex items-center rounded-lg border border-border bg-muted/50 px-2 h-7 w-24" />
       </div>
     );
   }
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex items-center rounded-lg border border-border bg-muted/50 p-1">
-        <Button
-          variant={dataSource === 'mock' ? 'secondary' : 'ghost'}
-          size="sm"
-          onClick={() => handleSourceChange('mock')}
-          className="gap-1.5 h-7"
-        >
-          <Database className="h-3.5 w-3.5" />
-          Mock
-        </Button>
-        <Button
-          variant={dataSource === 'live' ? 'secondary' : 'ghost'}
-          size="sm"
-          onClick={() => handleSourceChange('live')}
-          disabled={!hasValidWallet}
-          className="gap-1.5 h-7"
-        >
-          <Cloud className="h-3.5 w-3.5" />
-          Live
-        </Button>
+      <div className="flex items-center rounded-lg border border-border bg-muted/50 px-2 h-7">
+        {dataSource === 'live' ? (
+          <span className="inline-flex items-center gap-1 text-xs text-emerald-500">
+            <Cloud className="h-3.5 w-3.5" />
+            Live
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+            <Database className="h-3.5 w-3.5" />
+            Mock
+          </span>
+        )}
       </div>
-
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-7 w-7"
-        onClick={handleRefresh}
-        disabled={isLoading}
-      >
-        <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-      </Button>
-
-      {dataSource === 'live' && !hasValidWallet && (
-        <Badge variant="outline" className="text-xs text-muted-foreground">
-          Enter wallet address for live data
-        </Badge>
-      )}
-
-      {dataSource === 'live' && hasValidWallet && historyLoading && (
-        <Badge variant="outline" className="text-xs text-blue-500">
-          Fetching on-chain trades...
-        </Badge>
-      )}
-
-      {dataSource === 'live' && hasValidWallet && !historyLoading && (!tradeHistory || tradeHistory.length === 0) && (
-        <Badge variant="outline" className="text-xs text-yellow-500">
-          No trades found for this wallet
-        </Badge>
-      )}
-
-      {dataSource === 'live' && hasValidWallet && !historyLoading && tradeHistory && tradeHistory.length > 0 && (
-        <Badge variant="outline" className="text-xs text-green-500">
-          {tradeHistory.length} trades loaded
-        </Badge>
-      )}
     </div>
   );
 }

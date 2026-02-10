@@ -132,4 +132,21 @@ export function useAllPerpPositions() {
   });
 }
 
-// (Valuation context removed – we avoid approximate account value to prevent confusion)
+// Hook to get approximate Deriverse account equity in base token (e.g. USDC)
+export function useAccountEquity() {
+  const { walletAddress, isValidAddress } = useWalletAddress();
+  const { isReady: engineReady } = useDeriverseEngine();
+
+  return useQuery({
+    queryKey: ['accountEquity', walletAddress],
+    queryFn: async () => {
+      if (!walletAddress) return null;
+      const service = getDeriverseService();
+      await service.setWallet(walletAddress);
+      return service.getAccountEquity();
+    },
+    enabled: !!walletAddress && isValidAddress && engineReady,
+    staleTime: 30000,
+    refetchInterval: 60000,
+  });
+}

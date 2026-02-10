@@ -1,16 +1,109 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { TradeTable } from '@/components/journal/TradeTable';
 import { TradeFilters } from '@/components/journal/TradeFilters';
 import { TradeSearch } from '@/components/journal/TradeSearch';
 import { useTradeStore } from '@/stores/tradeStore';
+import { useWalletAddress } from '@/contexts/WalletAddressContext';
+import { useTradeHistory } from '@/lib/deriverse';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Download, RefreshCw } from 'lucide-react';
 
 export default function JournalPage() {
-  const { trades, filteredTrades, loadMockData, isLoading } = useTradeStore();
+  const {
+    trades,
+    filteredTrades,
+    loadMockData,
+    isLoading,
+    dataSource,
+    setTrades,
+    setLoading,
+    setError,
+    clearTrades,
+  } = useTradeStore();
+  const { walletAddress, isValidAddress, setWalletAddress } = useWalletAddress();
+  const { data: tradeHistory, isLoading: historyLoading, refetch: refetchHistory } = useTradeHistory();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState('');
+  const [didInitFromUrl, setDidInitFromUrl] = useState(false);
+
+  // Sync wallet address from URL (?wallet=...) into context
+  useEffect(() => {
+    if (didInitFromUrl) return;
+    const urlWallet = searchParams.get('wallet');
+    if (!urlWallet) return;
+    setWalletAddress(urlWallet);
+    setDidInitFromUrl(true);
+  }, [searchParams, didInitFromUrl, setWalletAddress]);
+
+  // Keep wallet query param in sync with context on /journal as well
+  useEffect(() => {
+    const current = searchParams.get('wallet');
+    if (!walletAddress || !isValidAddress) {
+      if (!current) return;
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('wallet');
+      const query = new URLSearchParams(params).toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+      return;
+    }
+    if (current === walletAddress) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('wallet', walletAddress);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [walletAddress, isValidAddress, searchParams, router, pathname]);
+
+  // When wallet is cleared in live mode, clear journal trades so it resets
+  useEffect(() => {
+    if (dataSource !== 'live') return;
+    if (walletAddress && isValidAddress) return;
+
+    clearTrades();
+    setLoading(false);
+  }, [dataSource, walletAddress, isValidAddress, clearTrades, setLoading]);
+
+  // Ensure trades are loaded when landing directly on /journal
+  useEffect(() => {
+    // Mock mode: ensure mock data is present
+    if (dataSource === 'mock') {
+      if (trades.length === 0) {
+        loadMockData();
+      }
+      return;
+    }
+
+    // Live mode: if no trades yet and we have a valid wallet, fetch on-chain history
+    if (dataSource === 'live' && trades.length === 0 && walletAddress && isValidAddress && !historyLoading) {
+      setLoading(true);
+      refetchHistory();
+    }
+  }, [dataSource, trades.length, walletAddress, isValidAddress, historyLoading, loadMockData, refetchHistory, setLoading]);
+
+  // When live trade history arrives, push it into the trade store
+  useEffect(() => {
+    if (dataSource !== 'live') return;
+    if (historyLoading) return;
+
+    try {
+      if (tradeHistory && tradeHistory.length > 0) {
+        setTrades(tradeHistory);
+      } else if (walletAddress && isValidAddress) {
+        // Live wallet but no history found
+        setTrades([]);
+      }
+    } catch (err) {
+      console.error('Failed to process live trade data (journal):', err);
+      setError(err instanceof Error ? err.message : 'Failed to load live data');
+    } finally {
+      if (!historyLoading) {
+        setLoading(false);
+      }
+    }
+  }, [dataSource, tradeHistory, historyLoading, walletAddress, isValidAddress, setTrades, setError, setLoading]);
 
   // Apply search filter on top of store filters
   const displayTrades = useMemo(() => {
@@ -48,6 +141,15 @@ export default function JournalPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleRefreshClick = () => {
+    if (dataSource === 'live' && walletAddress && isValidAddress) {
+      setLoading(true);
+      refetchHistory();
+    } else {
+      loadMockData();
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -78,7 +180,7 @@ export default function JournalPage() {
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
-          <Button variant="outline" onClick={loadMockData}>
+          <Button variant="outline" onClick={handleRefreshClick}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>

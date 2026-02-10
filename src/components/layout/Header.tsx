@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 import { WalletAddressInput } from '@/components/wallet/WalletAddressInput';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { PrivacyToggle } from '@/components/ui/privacy-toggle';
+import { DataSourceToggle } from '@/components/dashboard/DataSourceToggle';
+import { DataSourceRefreshButton } from '@/components/dashboard/DataSourceRefreshButton';
 import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
@@ -63,6 +65,7 @@ export function Header() {
         <div className="hidden md:flex items-center gap-2">
           <PrivacyToggle />
           <ThemeToggle />
+          <DataSourceToggle />
           <WalletAddressInput />
         </div>
 
@@ -108,11 +111,13 @@ export function Header() {
 
             {/* Mobile Wallet Section */}
             <div className="flex items-center justify-between pt-3 border-t border-border">
-              <div className="flex items-center gap-2">
-                <PrivacyToggle />
-                <ThemeToggle />
-              </div>
-              <WalletAddressInput />
+            <div className="flex items-center gap-2">
+              <PrivacyToggle />
+              <ThemeToggle />
+              <DataSourceToggle />
+              <DataSourceRefreshButton />
+            </div>
+            <WalletAddressInput />
             </div>
           </div>
         </div>

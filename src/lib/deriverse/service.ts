@@ -10,6 +10,7 @@ export class DeriverseService {
   private programId: string;
   private version: number;
   private tokenSymbols: Map<number, string> = new Map();
+  private baseTokenId: number | null = null;
 
   constructor(
     rpcUrl: string = process.env.NEXT_PUBLIC_RPC_URL || 'https://api.devnet.solana.com',
@@ -48,7 +49,14 @@ export class DeriverseService {
           const usdcId = await this.engine.getTokenId(address(usdcMint as `${string}`));
           if (usdcId !== null) {
             this.tokenSymbols.set(usdcId, 'USDC');
+            this.baseTokenId = usdcId;
           }
+        }
+
+        // Fallback: if no explicit base token was found, pick the first instrument's currency token
+        if (this.baseTokenId === null && this.engine.instruments && this.engine.instruments.size > 0) {
+          const firstInstr = Array.from(this.engine.instruments.values())[0] as { header: { crncyTokenId: number } };
+          this.baseTokenId = firstInstr.header.crncyTokenId;
         }
       } catch (e) {
         console.warn('Failed to derive token symbols from mints:', e);
@@ -133,6 +141,57 @@ export class DeriverseService {
    */
   getTokenSymbol(tokenId: number): string {
     return this.tokenSymbols.get(tokenId) ?? `Token ${tokenId}`;
+  }
+
+  /**
+   * Approximate Deriverse account equity in base token (e.g. USDC).
+   * Uses client token balances and instrument prices.
+   */
+  async getAccountEquity(): Promise<number | null> {
+    if (!this.engine) {
+      throw new Error('Engine not initialized');
+    }
+    const client = await this.getClientData();
+    if (!client || !client.tokens || client.tokens.size === 0) return null;
+    if (this.baseTokenId === null) return null;
+
+    const instruments = this.engine.instruments;
+    if (!instruments || instruments.size === 0) return null;
+
+    let total = 0;
+
+    for (const token of client.tokens.values()) {
+      const { tokenId, amount } = token;
+      if (tokenId === this.baseTokenId) {
+        // Base currency balance (e.g. USDC)
+        total += amount;
+      } else {
+        // Try to find a spot or perp market where this token is the asset and baseTokenId is the currency
+        const entry = Array.from(instruments.values()).find(instr => {
+          const header = instr.header as { assetTokenId: number; crncyTokenId: number };
+          return header.assetTokenId === tokenId && header.crncyTokenId === this.baseTokenId;
+        }) as { header: { lastPx?: number; bestBid?: number; bestAsk?: number } } | undefined;
+
+        if (!entry) continue;
+
+        const header = entry.header;
+        let price = header.lastPx ?? 0;
+        const bestBid = header.bestBid ?? 0;
+        const bestAsk = header.bestAsk ?? 0;
+
+        if (price <= 0 && bestBid > 0 && bestAsk > 0) {
+          price = (bestBid + bestAsk) / 2;
+        } else if (price <= 0) {
+          price = bestBid || bestAsk || 0;
+        }
+
+        if (price > 0) {
+          total += amount * price;
+        }
+      }
+    }
+
+    return total;
   }
 }
 

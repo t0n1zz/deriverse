@@ -18,19 +18,20 @@ import { format } from 'date-fns';
 
 interface PnLChartProps {
   className?: string;
+  initialEquity?: number;
 }
 
-export function PnLChart({ className }: PnLChartProps) {
+export function PnLChart({ className, initialEquity = 0 }: PnLChartProps) {
   const trades = useTradeStore(state => state.trades);
 
   const chartData = useMemo(() => {
-    const data = generatePnLChartData(trades, 10000);
+    const data = generatePnLChartData(trades, initialEquity);
     return data.map(point => ({
       ...point,
       date: format(new Date(point.timestamp), 'MMM dd'),
       fullDate: format(new Date(point.timestamp), 'MMM dd, yyyy HH:mm'),
     }));
-  }, [trades]);
+  }, [trades, initialEquity]);
 
   if (chartData.length === 0) {
     return (

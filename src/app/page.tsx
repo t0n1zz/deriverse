@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useTradeStore } from '@/stores/tradeStore';
 import { useWalletAddress } from '@/contexts/WalletAddressContext';
 import { usePrivacy } from '@/contexts/PrivacyContext';
@@ -15,8 +15,10 @@ import { MarketBreakdown } from '@/components/dashboard/MarketBreakdown';
 import { FeeBreakdown } from '@/components/dashboard/FeeBreakdown';
 import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap';
 import { DataSourceToggle } from '@/components/dashboard/DataSourceToggle';
+import { DataSourceRefreshButton } from '@/components/dashboard/DataSourceRefreshButton';
 import { SharePnLCard } from '@/components/dashboard/SharePnLCard';
 import { LoadingCard } from '@/components/ui/loading';
+import { useAccountEquity } from '@/lib/deriverse';
 import {
   DollarSign,
   TrendingUp,
@@ -30,38 +32,61 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function DashboardContent() {
-  const { analytics, trades, isLoading, dataSource } = useTradeStore();
+  const { analytics, trades, isLoading, dataSource, clearTrades, setLoading } = useTradeStore();
   const { walletAddress, isValidAddress, setWalletAddress } = useWalletAddress();
   const { hideBalances } = usePrivacy();
+  const { data: accountEquity } = useAccountEquity();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [didInitFromUrl, setDidInitFromUrl] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // When URL has ?wallet=... sync it into the wallet context on first load / when it changes
+  // On first load, if URL has ?wallet=..., sync it into the wallet context once
   useEffect(() => {
+    if (didInitFromUrl) return;
     const urlWallet = searchParams.get('wallet');
     if (!urlWallet) return;
-    if (urlWallet !== walletAddress) {
-      setWalletAddress(urlWallet);
-    }
-  }, [searchParams, walletAddress, setWalletAddress]);
+    setWalletAddress(urlWallet);
+    setDidInitFromUrl(true);
+  }, [searchParams, didInitFromUrl, setWalletAddress]);
 
-  // When a valid wallet is set in context, reflect it back into the URL (?wallet=...)
+  // Keep wallet query param in sync with context (add when set, remove when cleared)
   useEffect(() => {
     if (!mounted) return;
-    if (!walletAddress || !isValidAddress) return;
-
     const current = searchParams.get('wallet');
+
+    if (!walletAddress || !isValidAddress) {
+      // Clear wallet param if it exists
+      if (!current) return;
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('wallet');
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+      return;
+    }
+
     if (current === walletAddress) return;
 
     const params = new URLSearchParams(searchParams.toString());
     params.set('wallet', walletAddress);
-    router.replace(`?${params.toString()}`, { scroll: false });
-  }, [mounted, walletAddress, isValidAddress, searchParams, router, setWalletAddress]);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [mounted, walletAddress, isValidAddress, searchParams, router, pathname]);
+
+  // When wallet is cleared in live mode, clear any live trades/analytics so UI resets
+  useEffect(() => {
+    if (!mounted) return;
+    if (dataSource !== 'live') return;
+    if (walletAddress && isValidAddress) return;
+
+    // No valid wallet in live mode: clear current live data
+    clearTrades();
+    setLoading(false);
+  }, [mounted, dataSource, walletAddress, isValidAddress, clearTrades, setLoading]);
 
   // Show nothing during SSR to prevent hydration mismatch
   if (!mounted) {
@@ -150,7 +175,10 @@ function DashboardContent() {
     return `${prefix}${value.toFixed(2)}%`;
   };
 
-  // (Client token balances are displayed separately, using Deriverse client data.)
+  const initialEquity =
+    accountEquity != null && !Number.isNaN(accountEquity)
+      ? accountEquity - analytics.realizedPnL
+      : 0;
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -161,7 +189,7 @@ function DashboardContent() {
         </div>
         <div className="flex items-center gap-2">
           <SharePnLCard />
-          <DataSourceToggle />
+          <DataSourceRefreshButton />
         </div>
       </div>
 
@@ -208,14 +236,14 @@ function DashboardContent() {
           {/* PnL and Position Distribution */}
           <div className="grid gap-4 lg:grid-cols-3 items-stretch min-h-[260px] md:min-h-[320px]">
             <div className="lg:col-span-2 h-full">
-              <PnLChart />
+              <PnLChart initialEquity={initialEquity} />
             </div>
             <div className="h-full">
               <LongShortPie />
             </div>
           </div>
 
-          <DrawdownChart height={150} />
+          <DrawdownChart height={150} initialEquity={initialEquity} />
 
           {/* Risk Metrics */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
