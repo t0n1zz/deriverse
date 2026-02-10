@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { PublicKey } from '@solana/web3.js';
 import { useWalletAddress } from '@/contexts/WalletAddressContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,23 +15,39 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
+function isValidSolanaAddress(address: string): boolean {
+  try {
+    new PublicKey(address);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function WalletAddressInput() {
   const { walletAddress, setWalletAddress, isValidAddress, clearAddress } = useWalletAddress();
   const [inputValue, setInputValue] = useState(walletAddress || '');
   const [open, setOpen] = useState(false);
+  const [hasAttempted, setHasAttempted] = useState(false);
+
+  const inputValid = inputValue.trim() ? isValidSolanaAddress(inputValue.trim()) : false;
 
   const handleSubmit = () => {
-    if (inputValue.trim()) {
-      setWalletAddress(inputValue.trim());
-      if (isValidAddress) {
-        setOpen(false);
-      }
+    setHasAttempted(true);
+    const trimmed = inputValue.trim();
+    if (!trimmed) return;
+
+    if (isValidSolanaAddress(trimmed)) {
+      setWalletAddress(trimmed);
+      setOpen(false);
+      setHasAttempted(false);
     }
   };
 
   const handleClear = () => {
     clearAddress();
     setInputValue('');
+    setHasAttempted(false);
   };
 
   const shortenAddress = (address: string) => {
@@ -54,7 +71,7 @@ export function WalletAddressInput() {
 
   // Show input dialog
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => { setOpen(isOpen); if (isOpen) setHasAttempted(false); }}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <Search className="h-4 w-4" />
@@ -73,7 +90,7 @@ export function WalletAddressInput() {
             <Input
               placeholder="Paste wallet address..."
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => { setInputValue(e.target.value); setHasAttempted(false); }}
               onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
               className="flex-1 font-mono text-sm"
             />
@@ -81,8 +98,11 @@ export function WalletAddressInput() {
               <Check className="h-4 w-4" />
             </Button>
           </div>
-          {inputValue && !isValidAddress && (
+          {hasAttempted && inputValue.trim() && !inputValid && (
             <p className="text-sm text-red-500">Invalid Solana address format</p>
+          )}
+          {inputValue.trim() && inputValid && (
+            <p className="text-sm text-green-500">✓ Valid Solana address</p>
           )}
           <p className="text-xs text-muted-foreground">
             💡 No wallet connection needed. Just paste any public address to view analytics.
