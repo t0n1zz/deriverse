@@ -12,10 +12,17 @@ type DataSource = 'mock' | 'live';
 
 export function DataSourceToggle() {
   const [mounted, setMounted] = useState(false);
-  const [dataSource, setDataSource] = useState<DataSource>('mock');
+  const {
+    dataSource,
+    setDataSource,
+    isLoading: storeLoading,
+    loadMockData,
+    setTrades,
+    setLoading,
+    setError,
+  } = useTradeStore();
   const { walletAddress, isValidAddress } = useWalletAddress();
-  const { isLoading: storeLoading, loadMockData, setTrades, setLoading, setError } = useTradeStore();
-  const { data: clientData, isLoading: clientLoading } = useClientData();
+  const { isLoading: clientLoading } = useClientData();
   const { data: tradeHistory, isLoading: historyLoading, refetch: refetchHistory } = useTradeHistory();
 
   const hasValidWallet = !!walletAddress && isValidAddress;
@@ -41,20 +48,18 @@ export function DataSourceToggle() {
     try {
       if (tradeHistory && tradeHistory.length > 0) {
         setTrades(tradeHistory);
-      } else if (clientData && !historyLoading) {
-        // Client exists but no trade fills found
-        // Only clear if we actually confirmed no history
+      } else {
+        // No trades: clear store so dashboard shows "No Position Data" or empty state
         setTrades([]);
       }
     } catch (err) {
       console.error('Failed to process live trade data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load live data');
     }
-  }, [dataSource, tradeHistory, clientData, historyLoading, setTrades, setError]);
+  }, [dataSource, tradeHistory, historyLoading, setTrades, setError]);
 
   const handleSourceChange = (source: DataSource) => {
     setDataSource(source);
-
     if (source === 'mock') {
       loadMockData();
     } else if (source === 'live') {

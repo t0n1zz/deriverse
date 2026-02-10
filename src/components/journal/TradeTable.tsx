@@ -157,6 +157,14 @@ export function TradeTable({ trades: propTrades, pageSize = 15 }: TradeTableProp
                   Entry <SortIcon field="entryPrice" />
                 </div>
               </TableHead>
+              <TableHead
+                className="cursor-pointer hover:text-foreground text-right"
+                onClick={() => handleSort('quantity')}
+              >
+                <div className="flex items-center justify-end gap-1">
+                  Size <SortIcon field="quantity" />
+                </div>
+              </TableHead>
               <TableHead>Exit</TableHead>
               <TableHead
                 className="cursor-pointer hover:text-foreground text-right"
@@ -186,6 +194,14 @@ export function TradeTable({ trades: propTrades, pageSize = 15 }: TradeTableProp
                 </TableCell>
                 <TableCell className="font-mono">
                   ${trade.entryPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </TableCell>
+                <TableCell className="font-mono text-right">
+                  {trade.quantity > 0
+                    ? trade.quantity.toLocaleString('en-US', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 6,
+                      })
+                    : '-'}
                 </TableCell>
                 <TableCell className="font-mono">
                   {trade.exitPrice

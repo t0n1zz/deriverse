@@ -4,8 +4,7 @@ import { Buffer } from 'buffer';
 
 if (typeof window !== 'undefined') {
   if (!window.Buffer) {
-    // @ts-ignore
-    window.Buffer = Buffer;
+    (window as unknown as { Buffer: typeof Buffer }).Buffer = Buffer;
   }
 }
 
