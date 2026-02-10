@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Header } from "@/components/layout/Header";
@@ -27,7 +28,9 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased bg-background text-foreground min-h-screen`} suppressHydrationWarning>
         <ClientBufferPolyfill />
         <Providers>
-          <Header />
+          <Suspense fallback={<div className="h-16 border-b" />}>
+            <Header />
+          </Suspense>
           <main className="container py-6">
             {children}
           </main>
