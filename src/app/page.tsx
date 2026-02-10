@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTradeStore } from '@/stores/tradeStore';
 import { useWalletAddress } from '@/contexts/WalletAddressContext';
@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { analytics, trades, isLoading, dataSource } = useTradeStore();
   const { walletAddress, isValidAddress, setWalletAddress } = useWalletAddress();
   const { hideBalances } = usePrivacy();
@@ -311,5 +311,13 @@ export default function DashboardPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<LoadingCard height="100vh" text="Loading dashboard..." />}>
+      <DashboardContent />
+    </Suspense>
   );
 }

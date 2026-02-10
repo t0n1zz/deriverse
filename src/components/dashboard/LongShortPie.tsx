@@ -13,9 +13,10 @@ import {
 
 interface LongShortPieProps {
   className?: string;
+  height?: number;
 }
 
-export function LongShortPie({ className }: LongShortPieProps) {
+export function LongShortPie({ className, height }: LongShortPieProps) {
   const analytics = useTradeStore(state => state.analytics);
 
   const data = useMemo(() => {
@@ -29,7 +30,7 @@ export function LongShortPie({ className }: LongShortPieProps) {
 
   if (data.length === 0 || (data[0].value === 0 && data[1].value === 0)) {
     return (
-      <div className={`rounded-lg border border-border bg-card p-4 flex flex-col h-full ${className ?? ''}`}>
+      <div className={`rounded-lg border border-border bg-card p-4 flex flex-col ${height ? '' : 'h-full'} ${className ?? ''}`} style={height ? { height } : undefined}>
         <h3 className="text-lg font-semibold mb-2">Position Distribution</h3>
         <div className="flex-1 flex items-center justify-center min-h-[200px]">
           <p className="text-muted-foreground">No data available</p>
@@ -79,28 +80,28 @@ export function LongShortPie({ className }: LongShortPieProps) {
   );
 
   return (
-    <div className={`rounded-lg border border-border bg-card p-4 flex flex-col h-full ${className ?? ''}`}>
+    <div className={`rounded-lg border border-border bg-card p-4 flex flex-col ${height ? '' : 'h-full'} ${className ?? ''}`} style={height ? { height } : undefined}>
       <h3 className="text-lg font-semibold mb-2">Position Distribution</h3>
       <div className="flex-1">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="45%"
-            innerRadius={60}
-            outerRadius={80}
-            paddingAngle={2}
-            dataKey="value"
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomTooltip />} />
-          <Legend content={<CustomLegend />} />
-        </PieChart>
-      </ResponsiveContainer>
+        <ResponsiveContainer width="100%" height={height ?? "100%"}>
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="45%"
+              innerRadius={60}
+              outerRadius={80}
+              paddingAngle={2}
+              dataKey="value"
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+            <Legend content={<CustomLegend />} />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
