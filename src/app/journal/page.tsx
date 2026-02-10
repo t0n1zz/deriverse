@@ -68,20 +68,38 @@ function JournalContent() {
 
   // Ensure trades are loaded when landing directly on /journal
   useEffect(() => {
-    // Mock mode: ensure mock data is present
-    if (dataSource === 'mock') {
-      if (trades.length === 0) {
-        loadMockData();
+    const mode = searchParams.get('mode');
+
+    // Wallet present: prefer live data
+    if (walletAddress && isValidAddress) {
+      if (
+        dataSource === 'live' &&
+        trades.length === 0 &&
+        !historyLoading
+      ) {
+        setLoading(true);
+        refetchHistory();
       }
       return;
     }
 
-    // Live mode: if no trades yet and we have a valid wallet, fetch on-chain history
-    if (dataSource === 'live' && trades.length === 0 && walletAddress && isValidAddress && !historyLoading) {
-      setLoading(true);
-      refetchHistory();
+    // No wallet: allow mock mode via URL
+    if (mode === 'mock') {
+      if (dataSource !== 'mock' || trades.length === 0) {
+        loadMockData();
+      }
     }
-  }, [dataSource, trades.length, walletAddress, isValidAddress, historyLoading, loadMockData, refetchHistory, setLoading]);
+  }, [
+    dataSource,
+    trades.length,
+    walletAddress,
+    isValidAddress,
+    historyLoading,
+    loadMockData,
+    refetchHistory,
+    setLoading,
+    searchParams,
+  ]);
 
   // When live trade history arrives, push it into the trade store
   useEffect(() => {

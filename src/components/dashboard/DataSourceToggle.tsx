@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useWalletAddress } from '@/contexts/WalletAddressContext';
 import { useTradeStore } from '@/stores/tradeStore';
 import { useTradeHistory, useClientData } from '@/lib/deriverse';
@@ -9,10 +10,10 @@ import { Database, Cloud } from 'lucide-react';
 
 export function DataSourceToggle() {
   const [mounted, setMounted] = useState(false);
+  const searchParams = useSearchParams();
   const {
     dataSource,
     setDataSource,
-
     loadMockData,
     setTrades,
     setLoading,
@@ -30,25 +31,34 @@ export function DataSourceToggle() {
     setMounted(true);
   }, []);
 
-  // Automatically choose data source based on whether a valid wallet is present.
-  // - With a valid wallet → live mode (on-chain data)
-  // - Without a valid wallet → mock mode (demo data)
+  // Choose data source based on URL and wallet:
+  // - If wallet is connected → always live (until wallet is cleared)
+  // - Else if ?mode=mock → mock data
+  // - Else → leave empty so dashboard can show landing
   useEffect(() => {
     if (!mounted) return;
 
+    const mode = searchParams.get('mode');
+
+    // Wallet present: force live mode
     if (hasValidWallet) {
       if (dataSource !== 'live') {
         setDataSource('live');
         setLoading(true);
         refetchHistory();
       }
-    } else {
+      return;
+    }
+
+    // No wallet: allow persistent/mock-only mode via URL
+    if (mode === 'mock') {
       if (dataSource !== 'mock') {
         setDataSource('mock');
-        loadMockData();
       }
+      // Ensure mock trades are present
+      loadMockData();
     }
-  }, [mounted, hasValidWallet, dataSource, setDataSource, setLoading, refetchHistory, loadMockData]);
+  }, [mounted, searchParams, hasValidWallet, dataSource, setDataSource, setLoading, refetchHistory, loadMockData]);
 
   // Sync store loading state with history fetching
   useEffect(() => {

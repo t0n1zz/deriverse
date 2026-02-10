@@ -14,6 +14,12 @@ import { HourlyPerformance } from '@/components/dashboard/HourlyPerformance';
 import { MarketBreakdown } from '@/components/dashboard/MarketBreakdown';
 import { FeeBreakdown } from '@/components/dashboard/FeeBreakdown';
 import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap';
+import { ExposureBreakdown } from '@/components/dashboard/ExposureBreakdown';
+import { RDistributionChart } from '@/components/dashboard/RDistributionChart';
+import { RollingPerformanceChart } from '@/components/dashboard/RollingPerformanceChart';
+import { WeekdayPerformance } from '@/components/dashboard/WeekdayPerformance';
+import { GoalsPanel } from '@/components/dashboard/GoalsPanel';
+import { CoachingInsights } from '@/components/dashboard/CoachingInsights';
 import { DataSourceToggle } from '@/components/dashboard/DataSourceToggle';
 import { DataSourceRefreshButton } from '@/components/dashboard/DataSourceRefreshButton';
 import { SharePnLCard } from '@/components/dashboard/SharePnLCard';
@@ -89,18 +95,18 @@ function DashboardContent() {
     setLoading(false);
   }, [mounted, dataSource, walletAddress, isValidAddress, clearTrades, setLoading]);
 
+  const hasValidWallet = !!walletAddress && isValidAddress;
+  const mode = searchParams.get('mode');
+
   // Show nothing during SSR to prevent hydration mismatch
   if (!mounted) {
     return null;
   }
 
-  // Show wallet landing page when:
-  // - In live mode with no wallet address set
-  // - In live mode with no trades and not loading
-  const hasValidWallet = !!walletAddress && isValidAddress;
-  const shouldShowLanding = dataSource === 'live' && !hasValidWallet && trades.length === 0;
-
-  if (shouldShowLanding) {
+  // Landing rules:
+  // - If a wallet is connected → always go to live dashboard (no landing)
+  // - If NO wallet and mode !== 'mock' → show landing to choose wallet or mock
+  if (!hasValidWallet && mode !== 'mock') {
     return <WalletLanding />;
   }
 
@@ -180,6 +186,49 @@ function DashboardContent() {
     accountEquity != null && !Number.isNaN(accountEquity)
       ? accountEquity - analytics.realizedPnL
       : 0;
+
+  const openPositions = filteredTrades.filter((t) => t.status === 'open');
+  const totalOpenNotional = openPositions.reduce((sum, trade) => {
+    const leverage = trade.leverage ?? 1;
+    const notional = Math.abs(trade.quantity * trade.entryPrice * leverage);
+    return sum + notional;
+  }, 0);
+
+  const largestPosition = openPositions.reduce<{
+    market: string | null;
+    notional: number;
+  }>(
+    (acc, trade) => {
+      const leverage = trade.leverage ?? 1;
+      const notional = Math.abs(trade.quantity * trade.entryPrice * leverage);
+      if (notional > acc.notional) {
+        return { market: trade.market, notional };
+      }
+      return acc;
+    },
+    { market: null, notional: 0 }
+  );
+
+  const openExposurePercent =
+    initialEquity > 0 ? (totalOpenNotional / initialEquity) * 100 : 0;
+
+  // Expectancy in R units, based on average loss size
+  const closedTrades = filteredTrades.filter(
+    (t) => t.status === 'closed' && t.pnl !== null
+  );
+  const losingClosedTrades = closedTrades.filter((t) => (t.pnl ?? 0) < 0);
+  const grossLossAbs = Math.abs(
+    losingClosedTrades.reduce((sum, t) => sum + (t.pnl ?? 0), 0)
+  );
+  const avgLossAbs =
+    losingClosedTrades.length > 0 ? grossLossAbs / losingClosedTrades.length : 0;
+  const expectancyR =
+    closedTrades.length > 0 && avgLossAbs > 0
+      ? closedTrades.reduce((sum, t) => {
+          const pnl = t.pnl ?? 0;
+          return sum + pnl / avgLossAbs;
+        }, 0) / closedTrades.length
+      : 0;
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -196,6 +245,8 @@ function DashboardContent() {
 
       {/* Filters */}
       <DashboardFilters />
+
+      <CoachingInsights />
 
       {/* Top Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -281,6 +332,39 @@ function DashboardContent() {
               valueClassName={analytics.expectancy >= 0 ? 'text-green-500' : 'text-red-500'}
               tooltip="The estimated profit (or loss) of your next trade based on your history. If this is positive, your strategy is profitable over time."
             />
+            <StatsCard
+              title="Open Exposure"
+              value={
+                initialEquity > 0
+                  ? `${openExposurePercent.toFixed(1)}%`
+                  : '$0'
+              }
+              subtitle={
+                totalOpenNotional > 0
+                  ? `$${totalOpenNotional.toLocaleString('en-US', {
+                      maximumFractionDigits: 0,
+                    })} notional`
+                  : 'No open positions'
+              }
+              tooltip="Approximate open notional exposure relative to your equity, including leverage."
+            />
+            <StatsCard
+              title="Position Concentration"
+              value={
+                largestPosition.market
+                  ? largestPosition.market
+                  : 'No open positions'
+              }
+              subtitle={
+                largestPosition.notional > 0 && totalOpenNotional > 0
+                  ? `${(
+                      (largestPosition.notional / totalOpenNotional) *
+                      100
+                    ).toFixed(1)}% of open exposure`
+                  : '—'
+              }
+              tooltip="Largest single-market position as a share of your total open exposure."
+            />
           </div>
         </TabsContent>
 
@@ -293,18 +377,28 @@ function DashboardContent() {
                 title="Long PnL"
                 value={formatCurrency(analytics.longPnL)}
                 subtitle={`${analytics.longCount} trades`}
-                valueClassName={analytics.longPnL >= 0 ? 'text-green-500' : 'text-red-500'}
+                valueClassName={
+                  analytics.longPnL >= 0 ? 'text-green-500' : 'text-red-500'
+                }
               />
               <StatsCard
                 title="Short PnL"
                 value={formatCurrency(analytics.shortPnL)}
                 subtitle={`${analytics.shortCount} trades`}
-                valueClassName={analytics.shortPnL >= 0 ? 'text-green-500' : 'text-red-500'}
+                valueClassName={
+                  analytics.shortPnL >= 0 ? 'text-green-500' : 'text-red-500'
+                }
               />
               <StatsCard
                 title="Risk/Reward"
                 value={analytics.riskRewardRatio.toFixed(2)}
                 subtitle="Avg win / Avg loss"
+              />
+              <StatsCard
+                title="Expectancy (R)"
+                value={`${expectancyR.toFixed(2)}R`}
+                subtitle="Per trade, normalized by avg loss size"
+                tooltip="Average R-multiple per trade. 1R is roughly the size of your typical losing trade. Positive values mean your system makes more per trade than it loses, in R terms."
               />
             </div>
           </div>
@@ -312,8 +406,17 @@ function DashboardContent() {
           {/* Position Pie */}
           <LongShortPie height={250} />
 
-          {/* Calendar Heatmap */}
-          <CalendarHeatmap daysToShow={35} />
+          <RDistributionChart height={250} />
+
+          {/* Calendar & Consistency */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <CalendarHeatmap daysToShow={35} />
+            <RollingPerformanceChart height={260} />
+          </div>
+
+          <WeekdayPerformance height={220} />
+
+          <GoalsPanel />
         </TabsContent>
 
         <TabsContent value="markets" className="space-y-4">
@@ -342,6 +445,8 @@ function DashboardContent() {
               valueClassName="text-yellow-500"
             />
           </div>
+
+          <ExposureBreakdown height={260} />
         </TabsContent>
       </Tabs>
     </div>

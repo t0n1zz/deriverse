@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { WalletAddressInput } from '@/components/wallet/WalletAddressInput';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -24,7 +24,17 @@ const navigation = [
 
 export function Header() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Build query string for nav links, stripping mock mode when a wallet is connected
+  const rawParams = new URLSearchParams(searchParams.toString());
+  const wallet = rawParams.get('wallet');
+  if (wallet) {
+    // Wallet connected ⇒ always live; drop any mock-only mode flag
+    rawParams.delete('mode');
+  }
+  const search = rawParams.toString();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -45,7 +55,7 @@ export function Header() {
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={search ? `${item.href}?${search}` : item.href}
                 className={cn(
                   'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                   isActive
@@ -92,7 +102,7 @@ export function Header() {
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={search ? `${item.href}?${search}` : item.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
                       'flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors',

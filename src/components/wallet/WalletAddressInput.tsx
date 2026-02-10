@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { PublicKey } from '@solana/web3.js';
 import { useWalletAddress } from '@/contexts/WalletAddressContext';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,9 @@ function isValidSolanaAddress(address: string): boolean {
 
 export function WalletAddressInput() {
   const { walletAddress, setWalletAddress, isValidAddress, clearAddress } = useWalletAddress();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [inputValue, setInputValue] = useState(walletAddress || '');
   const [open, setOpen] = useState(false);
   const [hasAttempted, setHasAttempted] = useState(false);
@@ -39,6 +43,13 @@ export function WalletAddressInput() {
 
     if (isValidSolanaAddress(trimmed)) {
       setWalletAddress(trimmed);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('wallet', trimmed);
+      // Wallet connected ⇒ always live; clear any mock flag
+      params.delete('mode');
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+
       setOpen(false);
       setHasAttempted(false);
     }

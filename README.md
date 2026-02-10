@@ -27,6 +27,17 @@ A comprehensive trading analytics dashboard for the [Deriverse](https://derivers
 - **CSV Export** - Export your trade history for external analysis
 - **Pagination** - Navigate through large trade histories
 
+### Detailed Analytics
+- **R-Multiples** - Analyze performance in terms of risk units (R)
+- **Rolling Performance** - Visualize trend consistency over time
+- **Weekday Analysis** - Identify your best and worst trading days
+- **Exposure Analysis** - Monitor open position sizing and concentration
+
+### Trader Coaching
+- **Automated Insights** - Get personalized feedback on your trading behavior
+- **Goals Tracking** - Set and monitor monthly trading targets
+
+
 ### Wallet Integration
 - **Phantom & Solflare Support** - Connect your Solana wallet
 - **Solana Explorer Links** - Direct links to transaction details

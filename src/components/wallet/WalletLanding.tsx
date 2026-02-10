@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { PublicKey } from '@solana/web3.js';
 import { useWalletAddress } from '@/contexts/WalletAddressContext';
 import { useTradeStore } from '@/stores/tradeStore';
@@ -18,8 +19,11 @@ function isValidSolanaAddress(address: string): boolean {
 }
 
 export function WalletLanding() {
-  const { setWalletAddress } = useWalletAddress();
+  const { setWalletAddress, clearAddress } = useWalletAddress();
   const { loadMockData } = useTradeStore();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [inputValue, setInputValue] = useState('');
   const [hasAttempted, setHasAttempted] = useState(false);
 
@@ -32,11 +36,24 @@ export function WalletLanding() {
 
     if (isValidSolanaAddress(trimmed)) {
       setWalletAddress(trimmed);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('wallet', trimmed);
+      // Clearing any mock mode — wallet always implies live
+      params.delete('mode');
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     }
   };
 
   const handleMockData = () => {
+    // Clear any connected wallet so mock mode is unambiguous
+    clearAddress();
     loadMockData();
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('wallet');
+    params.set('mode', 'mock');
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   return (
