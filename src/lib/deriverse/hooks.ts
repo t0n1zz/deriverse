@@ -74,7 +74,7 @@ export function usePerpPosition(instrId: number, clientId: number | undefined) {
   });
 }
 
-// Hook to aggregate all perp positions for the wallet address
+// Hook to get all perp positions - simplified to just use client data
 export function useAllPerpPositions() {
   const { data: clientData } = useClientData();
   const { isReady: engineReady } = useDeriverseEngine();
@@ -84,19 +84,16 @@ export function useAllPerpPositions() {
     queryFn: async () => {
       if (!clientData?.perp) return [];
 
-      const service = getDeriverseService();
+      // Convert the perp map directly to an array without querying each instrument
+      // This avoids "Invalid Instrument ID" errors for instruments not in the registry
       const positions = [];
       const perpEntries = Array.from(clientData.perp.entries());
 
       for (const [instrId, perpData] of perpEntries) {
-        const positionInfo = await service.getPerpPositionInfo(instrId, perpData.clientId);
-        if (positionInfo) {
-          positions.push({
-            instrId,
-            clientId: perpData.clientId,
-            ...positionInfo,
-          });
-        }
+        positions.push({
+          instrId,
+          ...perpData,
+        });
       }
 
       return positions;
