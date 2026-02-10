@@ -6,6 +6,9 @@ import {
   PerpPlaceOrderReportModel,
   PerpFeesReportModel,
   PerpFundingReportModel,
+  SpotPlaceOrderReportModel,
+  SpotFillOrderReportModel,
+  SpotFeesReportModel,
   LogMessage
 } from '@deriverse/kit';
 import { Trade } from '@/types';
@@ -22,7 +25,7 @@ export async function fetchTradeHistory(
   connection: Connection,
   engine: Engine,
   walletAddress: string,
-  limit: number = 50
+  limit: number = 100
 ): Promise<Trade[]> {
   const pubkey = new PublicKey(walletAddress);
 
@@ -31,30 +34,35 @@ export async function fetchTradeHistory(
 
   if (signatures.length === 0) return [];
 
-  // Delay before fetching transactions to let rate limit bucket refill
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // 2. Fetch parsed transactions in batches to avoid rate limits
+  // 2. Fetch parsed transactions one by one to avoid rate limits
   const txs: (ParsedTransactionWithMeta | null)[] = [];
-  const BATCH_SIZE = 2; // Conservative batch size
 
-  for (let i = 0; i < signatures.length; i += BATCH_SIZE) {
-    const batchSignatures = signatures.slice(i, i + BATCH_SIZE).map(s => s.signature);
+  for (let i = 0; i < signatures.length; i++) {
+    const signature = signatures[i].signature;
 
-    try {
-      const batchTxs = await connection.getParsedTransactions(
-        batchSignatures,
-        { maxSupportedTransactionVersion: 0, commitment: 'confirmed' }
-      );
-      txs.push(...batchTxs);
-    } catch (e) {
-      console.warn(`Failed to fetch history batch ${Math.floor(i / BATCH_SIZE) + 1}, skipping...`, e);
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        const tx = await connection.getParsedTransaction(signature, {
+          maxSupportedTransactionVersion: 0,
+          commitment: 'confirmed'
+        });
+        if (tx) txs.push(tx);
+        break;
+      } catch (e: any) {
+        if (e.message?.includes('429')) {
+          const delay = (4 - retries) * 1000;
+          await new Promise(r => setTimeout(r, delay));
+          retries--;
+        } else {
+          console.warn(`Failed to fetch history tx ${signature}, skipping...`);
+          break;
+        }
+      }
     }
 
-    // Add a delay between batches to respect rate limits
-    if (i + BATCH_SIZE < signatures.length) {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-    }
+    // Small delay between requests to be nice to public RPC
+    await new Promise(r => setTimeout(r, 200));
   }
 
   const trades: Trade[] = [];
@@ -68,7 +76,7 @@ export async function fetchTradeHistory(
     try {
       logs = engine.logsDecode(tx.meta.logMessages);
     } catch (e) {
-      console.warn('Failed to decode logs for tx:', tx.transaction.signatures[0], e);
+      // Not a Deriverse transaction or decoding failed
       continue;
     }
 
@@ -76,24 +84,24 @@ export async function fetchTradeHistory(
     const timestamp = tx.blockTime ? new Date(tx.blockTime * 1000) : new Date();
 
     // Context for this transaction
-    let placedOrderInstrId: number | null = null;
+    let placedPerpInstrId: number | null = null;
+    let placedSpotInstrId: number | null = null;
 
     const txTrades: Trade[] = [];
 
     for (const log of logs) {
+      // --- PERP ---
+
       // TRACK CONTEXT
       if (isLogType<PerpPlaceOrderReportModel>(log, LogType.perpPlaceOrder)) {
-        placedOrderInstrId = log.instrId;
+        placedPerpInstrId = log.instrId;
       }
 
       // HANDLE FILLS
       if (isLogType<PerpFillOrderReportModel>(log, LogType.perpFillOrder)) {
         const fill = log;
-
-        // Try to determine Instrument ID
-        const instrId = placedOrderInstrId ?? 0;
+        const instrId = placedPerpInstrId ?? 0;
         const marketName = instrId ? `PERP-${instrId}` : 'Unknown-PERP';
-
         const side = fill.side === 0 ? 'long' : 'short';
 
         const trade: Trade = {
@@ -110,15 +118,11 @@ export async function fetchTradeHistory(
           leverage: null,
           pnl: 0,
           pnlPercent: 0,
-          fees: {
-            trading: 0,
-            funding: 0,
-          },
+          fees: { trading: 0, funding: 0 },
           status: 'closed',
           duration: null,
           annotations: [],
         };
-
         txTrades.push(trade);
       }
 
@@ -126,7 +130,9 @@ export async function fetchTradeHistory(
       if (isLogType<PerpFeesReportModel>(log, LogType.perpFees)) {
         if (txTrades.length > 0) {
           const lastTrade = txTrades[txTrades.length - 1];
-          lastTrade.fees.trading += log.fees;
+          if (lastTrade.marketType === 'perpetual') {
+            lastTrade.fees.trading += log.fees;
+          }
         }
       }
 
@@ -147,15 +153,58 @@ export async function fetchTradeHistory(
           leverage: null,
           pnl: funding.funding,
           pnlPercent: 0,
-          fees: {
-            trading: 0,
-            funding: -funding.funding,
-          },
+          fees: { trading: 0, funding: -funding.funding },
           status: 'closed',
           duration: null,
           annotations: ['Funding Payment'],
         };
         txTrades.push(fundingTrade);
+      }
+
+      // --- SPOT ---
+
+      // TRACK CONTEXT
+      if (isLogType<SpotPlaceOrderReportModel>(log, LogType.spotPlaceOrder)) {
+        placedSpotInstrId = log.instrId;
+      }
+
+      // HANDLE FILLS
+      if (isLogType<SpotFillOrderReportModel>(log, LogType.spotFillOrder)) {
+        const fill = log;
+        const instrId = placedSpotInstrId ?? 0;
+        const marketName = instrId ? `SPOT-${instrId}` : 'Unknown-SPOT';
+        const side = fill.side === 0 ? 'long' : 'short'; // 0 = Buy? Need to verify. Assuming standard.
+
+        const trade: Trade = {
+          id: `${signature}-${fill.orderId.toString()}`,
+          txSignature: signature,
+          timestamp: timestamp,
+          market: marketName,
+          marketType: 'spot',
+          side: side,
+          orderType: 'limit',
+          entryPrice: fill.price,
+          exitPrice: null,
+          quantity: fill.qty,
+          leverage: null,
+          pnl: null, // Spot trades don't have PnL on fill
+          pnlPercent: null,
+          fees: { trading: 0, funding: 0 },
+          status: 'closed',
+          duration: null,
+          annotations: [],
+        };
+        txTrades.push(trade);
+      }
+
+      // HANDLE FEES
+      if (isLogType<SpotFeesReportModel>(log, LogType.spotFees)) {
+        if (txTrades.length > 0) {
+          const lastTrade = txTrades[txTrades.length - 1];
+          if (lastTrade.marketType === 'spot') {
+            lastTrade.fees.trading += log.fees;
+          }
+        }
       }
     }
 
