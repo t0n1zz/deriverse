@@ -35,7 +35,7 @@ export function RDistributionChart({ height = 250 }: RDistributionChartProps) {
     );
 
     if (closedTrades.length === 0) {
-      return { chartData: [] as any[], averageR: 0 };
+      return { chartData: [], averageR: 0 };
     }
 
     const losingTrades = closedTrades.filter((t) => (t.pnl ?? 0) < 0);
@@ -46,7 +46,7 @@ export function RDistributionChart({ height = 250 }: RDistributionChartProps) {
       losingTrades.length > 0 ? grossLossAbs / losingTrades.length : 0;
 
     if (avgLossAbs === 0) {
-      return { chartData: [] as any[], averageR: 0 };
+      return { chartData: [], averageR: 0 };
     }
 
     const buckets: Record<

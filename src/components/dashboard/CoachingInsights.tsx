@@ -102,9 +102,9 @@ export function CoachingInsights({ className }: CoachingInsightsProps) {
     const expectancyRBlock =
       closed.length > 0 && avgLossAbsBlock > 0
         ? closed.reduce((sum, t) => {
-            const pnl = t.pnl ?? 0;
-            return sum + pnl / avgLossAbsBlock;
-          }, 0) / closed.length
+          const pnl = t.pnl ?? 0;
+          return sum + pnl / avgLossAbsBlock;
+        }, 0) / closed.length
         : 0;
 
     // Positive: strong recent performance
@@ -173,25 +173,21 @@ export function CoachingInsights({ className }: CoachingInsightsProps) {
     };
   }, [analytics, trades, filteredTrades, maxTradesPerDay, maxLossPerDay, targetRPerTrade]);
 
-  const formatPnL = (value: number) => {
-    if (hideBalances) return '****';
-    const prefix = value >= 0 ? '+' : '';
-    return `${prefix}$${Math.abs(value).toFixed(2)}`;
-  };
+
 
   const Icon =
     insight.tone === 'positive'
       ? Target
       : insight.tone === 'caution'
-      ? HeartPulse
-      : Lightbulb;
+        ? HeartPulse
+        : Lightbulb;
 
   const toneClasses =
     insight.tone === 'positive'
       ? 'border-emerald-500/40 bg-emerald-500/5'
       : insight.tone === 'caution'
-      ? 'border-amber-500/40 bg-amber-500/5'
-      : 'border-primary/40 bg-primary/5';
+        ? 'border-amber-500/40 bg-amber-500/5'
+        : 'border-primary/40 bg-primary/5';
 
   return (
     <div

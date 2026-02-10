@@ -39,7 +39,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function DashboardContent() {
-  const { analytics, trades, filteredTrades, isLoading, dataSource, clearTrades, setLoading } = useTradeStore();
+  const { analytics, filteredTrades, isLoading, dataSource, clearTrades, setLoading } = useTradeStore();
   const { walletAddress, isValidAddress, setWalletAddress } = useWalletAddress();
   const { hideBalances } = usePrivacy();
   const { data: accountEquity } = useAccountEquity();
@@ -225,9 +225,9 @@ function DashboardContent() {
   const expectancyR =
     closedTrades.length > 0 && avgLossAbs > 0
       ? closedTrades.reduce((sum, t) => {
-          const pnl = t.pnl ?? 0;
-          return sum + pnl / avgLossAbs;
-        }, 0) / closedTrades.length
+        const pnl = t.pnl ?? 0;
+        return sum + pnl / avgLossAbs;
+      }, 0) / closedTrades.length
       : 0;
   return (
     <div className="space-y-6">
@@ -342,8 +342,8 @@ function DashboardContent() {
               subtitle={
                 totalOpenNotional > 0
                   ? `$${totalOpenNotional.toLocaleString('en-US', {
-                      maximumFractionDigits: 0,
-                    })} notional`
+                    maximumFractionDigits: 0,
+                  })} notional`
                   : 'No open positions'
               }
               tooltip="Approximate open notional exposure relative to your equity, including leverage."
@@ -358,9 +358,9 @@ function DashboardContent() {
               subtitle={
                 largestPosition.notional > 0 && totalOpenNotional > 0
                   ? `${(
-                      (largestPosition.notional / totalOpenNotional) *
-                      100
-                    ).toFixed(1)}% of open exposure`
+                    (largestPosition.notional / totalOpenNotional) *
+                    100
+                  ).toFixed(1)}% of open exposure`
                   : '—'
               }
               tooltip="Largest single-market position as a share of your total open exposure."
