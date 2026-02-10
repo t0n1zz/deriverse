@@ -20,7 +20,7 @@ interface DrawdownChartProps {
 }
 
 export function DrawdownChart({ height = 200, initialEquity = 0 }: DrawdownChartProps) {
-  const trades = useTradeStore(state => state.trades);
+  const trades = useTradeStore(state => state.filteredTrades);
 
   const chartData = useMemo(() => {
     const data = generatePnLChartData(trades, initialEquity);

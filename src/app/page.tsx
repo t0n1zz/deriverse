@@ -19,6 +19,7 @@ import { DataSourceRefreshButton } from '@/components/dashboard/DataSourceRefres
 import { SharePnLCard } from '@/components/dashboard/SharePnLCard';
 import { LoadingCard } from '@/components/ui/loading';
 import { useAccountEquity } from '@/lib/deriverse';
+import { DashboardFilters } from '@/components/dashboard/DashboardFilters';
 import {
   DollarSign,
   TrendingUp,
@@ -32,7 +33,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function DashboardContent() {
-  const { analytics, trades, isLoading, dataSource, clearTrades, setLoading } = useTradeStore();
+  const { analytics, trades, filteredTrades, isLoading, dataSource, clearTrades, setLoading } = useTradeStore();
   const { walletAddress, isValidAddress, setWalletAddress } = useWalletAddress();
   const { hideBalances } = usePrivacy();
   const { data: accountEquity } = useAccountEquity();
@@ -193,6 +194,9 @@ function DashboardContent() {
         </div>
       </div>
 
+      {/* Filters */}
+      <DashboardFilters />
+
       {/* Top Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
@@ -212,7 +216,7 @@ function DashboardContent() {
         <StatsCard
           title="Total Trades"
           value={analytics.totalTrades}
-          subtitle={`${trades.filter(t => t.status === 'open').length} open`}
+          subtitle={`${filteredTrades.filter(t => t.status === 'open').length} open`}
           icon={Activity}
         />
         <StatsCard

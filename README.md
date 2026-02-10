@@ -21,6 +21,8 @@ A comprehensive trading analytics dashboard for the [Deriverse](https://derivers
 ### Trade Journal
 - **Sortable Table** - Sort by date, market, PnL, and more
 - **Advanced Filters** - Filter by market, side, status, and date range
+- **Date Range Filtering** - Select custom start and end dates to analyze specific periods
+- **Token Pair/Symbol Filtering** - Focus on specific trading pairs (e.g., SOL-USDC)
 - **Search** - Find trades by market or transaction hash
 - **CSV Export** - Export your trade history for external analysis
 - **Pagination** - Navigate through large trade histories

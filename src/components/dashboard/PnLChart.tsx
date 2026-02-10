@@ -22,7 +22,7 @@ interface PnLChartProps {
 }
 
 export function PnLChart({ className, initialEquity = 0 }: PnLChartProps) {
-  const trades = useTradeStore(state => state.trades);
+  const trades = useTradeStore(state => state.filteredTrades);
 
   const chartData = useMemo(() => {
     const data = generatePnLChartData(trades, initialEquity);

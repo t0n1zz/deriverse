@@ -136,12 +136,15 @@ export const useTradeStore = create<TradeState>()(
       setFilters: (newFilters) => {
         const filters = { ...get().filters, ...newFilters };
         const filteredTrades = applyFilters(get().trades, filters);
-        set({ filters, filteredTrades });
+        const analytics = calculateAnalytics(filteredTrades);
+        set({ filters, filteredTrades, analytics });
       },
 
       resetFilters: () => {
-        const filteredTrades = applyFilters(get().trades, defaultFilters);
-        set({ filters: defaultFilters, filteredTrades });
+        const trades = get().trades;
+        const filteredTrades = applyFilters(trades, defaultFilters);
+        const analytics = calculateAnalytics(filteredTrades);
+        set({ filters: defaultFilters, filteredTrades, analytics });
       },
 
       loadMockData: () => {
