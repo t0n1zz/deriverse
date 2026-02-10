@@ -1,5 +1,7 @@
 import { createSolanaRpc } from '@solana/kit';
 import { Engine, GetClientDataResponse, GetClientPerpOrdersInfoResponse } from '@deriverse/kit';
+import { fetchTradeHistory } from './history';
+import { Trade } from '@/types';
 
 // Deriverse SDK service for fetching on-chain data
 export class DeriverseService {
@@ -65,6 +67,26 @@ export class DeriverseService {
     } catch (error) {
       console.error('Failed to get perp position info:', error);
       return null;
+    }
+  }
+
+  async getTradeHistory(walletAddress: string): Promise<Trade[]> {
+    if (!this.engine) {
+      throw new Error('Engine not initialized');
+    }
+    try {
+      // Access the underlying connection from the RPC object if possible, 
+      // or create a new connection using the stored RPC URL.
+      // @solana/kit Rpc object might not expose connection directly in a way we need for getParsedTransactions?
+      // Actually `createSolanaRpc` returns a proxy. We might need a raw web3.js Connection for the history function.
+
+      const { Connection } = await import('@solana/web3.js');
+      const connection = new Connection(this.rpcUrl, 'confirmed');
+
+      return await fetchTradeHistory(connection, this.engine, walletAddress);
+    } catch (error) {
+      console.error('Failed to get trade history:', error);
+      return [];
     }
   }
 

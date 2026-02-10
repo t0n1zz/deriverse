@@ -52,6 +52,8 @@ export function useClientData() {
     enabled: !!walletAddress && isValidAddress && engineReady,
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // Refetch every minute
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   });
 }
 
@@ -83,23 +85,44 @@ export function useAllPerpPositions() {
     queryKey: ['allPerpPositions', Array.from(clientData?.perp?.entries() ?? [])],
     queryFn: async () => {
       if (!clientData?.perp) return [];
+      if (clientData.perp.size === 0) return [];
 
       // Convert the perp map directly to an array without querying each instrument
-      // This avoids "Invalid Instrument ID" errors for instruments not in the registry
       const positions = [];
       const perpEntries = Array.from(clientData.perp.entries());
 
       for (const [instrId, perpData] of perpEntries) {
         positions.push({
           ...perpData,
-          instrId, // Override with the map key to ensure it's the correct instrId
+          instrId,
         });
       }
 
       return positions;
     },
-    enabled: engineReady && !!clientData?.perp && clientData.perp.size > 0,
+    enabled: engineReady && !!clientData,
     staleTime: 30000,
     refetchInterval: 60000,
+  });
+}
+
+// Hook to fetch trade history from logs
+export function useTradeHistory() {
+  const { walletAddress, isValidAddress } = useWalletAddress();
+  const { isReady: engineReady } = useDeriverseEngine();
+
+  return useQuery({
+    queryKey: ['tradeHistory', walletAddress],
+    queryFn: async () => {
+      if (!walletAddress) return [];
+      const service = getDeriverseService();
+      return service.getTradeHistory(walletAddress);
+    },
+    enabled: !!walletAddress && isValidAddress && engineReady,
+    staleTime: 5 * 60 * 1000, // 5 minutes — history doesn't change often
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 15000),
   });
 }

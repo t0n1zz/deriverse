@@ -8,6 +8,7 @@ import { generateMockTrades } from '@/lib/mock/generateTrades';
 
 interface TradeState {
   // State
+  dataSource: 'mock' | 'live';
   trades: Trade[];
   filteredTrades: Trade[];
   analytics: PortfolioAnalytics | null;
@@ -16,6 +17,7 @@ interface TradeState {
   error: string | null;
 
   // Actions
+  setDataSource: (dataSource: 'mock' | 'live') => void;
   setTrades: (trades: Trade[]) => void;
   addTrade: (trade: Trade) => void;
   updateTrade: (id: string, updates: Partial<Trade>) => void;
@@ -26,6 +28,7 @@ interface TradeState {
   refreshAnalytics: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  clearTrades: () => void;
 }
 
 const defaultFilters: TradeFilters = {
@@ -86,7 +89,8 @@ function applyFilters(trades: Trade[], filters: TradeFilters): Trade[] {
 export const useTradeStore = create<TradeState>()(
   persist(
     (set, get) => ({
-      // Initial state
+      // Initial state — default to live
+      dataSource: 'live',
       trades: [],
       filteredTrades: [],
       analytics: null,
@@ -95,6 +99,8 @@ export const useTradeStore = create<TradeState>()(
       error: null,
 
       // Actions
+      setDataSource: (dataSource) => set({ dataSource }),
+
       setTrades: (trades) => {
         const analytics = calculateAnalytics(trades);
         const filteredTrades = applyFilters(trades, get().filters);
@@ -145,7 +151,8 @@ export const useTradeStore = create<TradeState>()(
             trades: mockTrades,
             analytics,
             filteredTrades,
-            isLoading: false
+            isLoading: false,
+            dataSource: 'mock',
           });
         } catch (error) {
           set({
@@ -156,28 +163,32 @@ export const useTradeStore = create<TradeState>()(
       },
 
       refreshAnalytics: () => {
-        const analytics = calculateAnalytics(get().trades);
-        set({ analytics });
+        const trades = get().trades;
+        if (trades.length > 0) {
+          const analytics = calculateAnalytics(trades);
+          set({ analytics });
+        }
       },
 
       setLoading: (isLoading) => set({ isLoading }),
 
       setError: (error) => set({ error }),
+
+      clearTrades: () => set({
+        trades: [],
+        filteredTrades: [],
+        analytics: null,
+        error: null,
+      }),
     }),
     {
       name: 'deriverse-trades',
-      // Only persist trades and filters, not computed values
+      // Only persist dataSource and filters — NOT trades
+      // Trades are re-fetched from chain or re-generated as mock
       partialize: (state) => ({
-        trades: state.trades,
+        dataSource: state.dataSource,
         filters: state.filters,
       }),
-      // Rehydrate on load
-      onRehydrateStorage: () => (state) => {
-        if (state?.trades) {
-          // Recompute analytics after rehydration
-          state.refreshAnalytics();
-        }
-      },
     }
   )
 );

@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTradeStore } from '@/stores/tradeStore';
+import { useWalletAddress } from '@/contexts/WalletAddressContext';
 import { usePrivacy } from '@/contexts/PrivacyContext';
+import { WalletLanding } from '@/components/wallet/WalletLanding';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { PnLChart } from '@/components/dashboard/PnLChart';
 import { DrawdownChart } from '@/components/dashboard/DrawdownChart';
@@ -24,18 +26,32 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function DashboardPage() {
-  const { analytics, trades, loadMockData, isLoading } = useTradeStore();
+  const { analytics, trades, isLoading, dataSource } = useTradeStore();
+  const { walletAddress, isValidAddress } = useWalletAddress();
   const { hideBalances } = usePrivacy();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (trades.length === 0 && !isLoading) {
-      loadMockData();
-    }
-  }, [trades.length, isLoading, loadMockData]);
+    setMounted(true);
+  }, []);
+
+  // Show nothing during SSR to prevent hydration mismatch
+  if (!mounted) {
+    return null;
+  }
+
+  // Show wallet landing page when:
+  // - In live mode with no wallet address set
+  // - In live mode with no trades and not loading
+  const hasValidWallet = !!walletAddress && isValidAddress;
+  const shouldShowLanding = dataSource === 'live' && !hasValidWallet && trades.length === 0;
+
+  if (shouldShowLanding) {
+    return <WalletLanding />;
+  }
 
   if (isLoading) {
     return (
@@ -44,6 +60,9 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">Your trading performance at a glance</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <DataSourceToggle />
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -58,12 +77,36 @@ export default function DashboardPage() {
   }
 
   if (!analytics) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <p className="text-muted-foreground">No trade data available</p>
-        <Button onClick={loadMockData}>Load Mock Data</Button>
-      </div>
-    );
+    if (dataSource === 'live') {
+      // Live mode with wallet but no data yet
+      return (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+              <p className="text-muted-foreground">Your trading performance at a glance</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <SharePnLCard />
+              <DataSourceToggle />
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center justify-center min-h-[400px] border rounded-lg bg-card">
+            <h3 className="text-xl font-semibold mb-2">No Position Data Found</h3>
+            <p className="text-muted-foreground mb-4">
+              We could not find any positions for this wallet on Deriverse.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Make sure you are connected to the correct network and have open positions.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // Mock mode but no data — shouldn't normally happen
+    return <WalletLanding />;
   }
 
   const formatCurrency = (value: number) => {

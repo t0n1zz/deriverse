@@ -24,7 +24,11 @@ export function FeeBreakdown({ height = 200 }: FeeBreakdownProps) {
     const feesByMarket: Map<string, { trading: number; funding: number }> = new Map();
 
     trades.forEach(trade => {
-      const market = trade.market.split('-')[0];
+      let market = trade.market;
+      // Only split if it's NOT a PERP-ID format to preserve distinct instrument IDs
+      if (!market.startsWith('PERP-')) {
+        market = market.split('-')[0];
+      }
       const existing = feesByMarket.get(market) || { trading: 0, funding: 0 };
       feesByMarket.set(market, {
         trading: existing.trading + trade.fees.trading,

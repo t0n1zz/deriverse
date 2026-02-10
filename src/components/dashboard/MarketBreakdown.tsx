@@ -34,7 +34,7 @@ export function MarketBreakdown({ height = 250 }: MarketBreakdownProps) {
 
     return Array.from(marketMap.entries())
       .map(([market, data]) => ({
-        market: market.split('-')[0], // SOL-USDC -> SOL
+        market: market.startsWith('PERP-') ? market : market.split('-')[0], // SOL-USDC -> SOL, PERP-1 -> PERP-1
         fullMarket: market,
         ...data,
       }))
