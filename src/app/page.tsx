@@ -225,6 +225,7 @@ function DashboardContent() {
           subtitle="Gross profit / loss"
           icon={BarChart3}
           valueClassName={analytics.profitFactor >= 1 ? 'text-green-500' : 'text-red-500'}
+          tooltip="Measures how much you win relative to how much you lose. A value of 2.0 means you make $2 for every $1 lost. Aim for above 1.5."
         />
       </div>
 
@@ -278,6 +279,7 @@ function DashboardContent() {
               subtitle="Expected per trade"
               icon={TrendingUp}
               valueClassName={analytics.expectancy >= 0 ? 'text-green-500' : 'text-red-500'}
+              tooltip="The estimated profit (or loss) of your next trade based on your history. If this is positive, your strategy is profitable over time."
             />
           </div>
         </TabsContent>

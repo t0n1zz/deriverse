@@ -124,8 +124,8 @@ This dashboard was built for the Deriverse Analytics Competition, focusing on:
 ## 📊 Analytics Calculations
 
 - **Win Rate**: `winningTrades / totalClosedTrades * 100`
-- **Profit Factor**: `grossProfit / grossLoss`
-- **Expectancy**: `(winRate * avgWin) - (lossRate * avgLoss)`
+- **Profit Factor**: Measures efficiency - "for every $1 lost, how many do I make?". `grossProfit / grossLoss`. Aim for > 1.5.
+- **Expectancy**: The average amount you can expect to win (or lose) per trade. `(winRate * avgWin) - (lossRate * avgLoss)`. Positive means profitable over time.
 - **Max Drawdown**: Largest peak-to-trough equity decline
 - **Risk/Reward**: `averageWin / averageLoss`
 

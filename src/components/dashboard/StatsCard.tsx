@@ -1,7 +1,13 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
+import { LucideIcon, TrendingUp, TrendingDown, HelpCircle } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface StatsCardProps {
   title: string;
@@ -12,6 +18,7 @@ interface StatsCardProps {
     value: number;
     isPositive: boolean;
   };
+  tooltip?: string;
   className?: string;
   valueClassName?: string;
 }
@@ -22,6 +29,7 @@ export function StatsCard({
   subtitle,
   icon: Icon,
   trend,
+  tooltip,
   className,
   valueClassName,
 }: StatsCardProps) {
@@ -33,9 +41,23 @@ export function StatsCard({
     )}>
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">
-            {title}
-          </p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-medium text-muted-foreground">
+              {title}
+            </p>
+            {tooltip && (
+              <TooltipProvider>
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-foreground transition-colors cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[250px]">
+                    <p className="text-xs">{tooltip}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
           <p className={cn(
             'text-2xl font-bold tracking-tight',
             valueClassName
