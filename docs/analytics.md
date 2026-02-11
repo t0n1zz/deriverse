@@ -47,6 +47,11 @@ Professional traders often think in terms of "R" (Risk) rather than dollars.
 Your expectancy measured in Risk Units.
 - **0.5R**: On average, for every unit of risk you put on the table, you make 0.5 units back in profit (plus your original risk).
 
+### Impact Metrics
+- **Avg Win**: Average profit per winning trade.
+- **Avg Loss**: Average loss per losing trade.
+- **Avg Duration**: Average time a trade is held open. Useful for checking if you hold losers longer than winners.
+
 ---
 
 ## 🛡️ Risk Management Metrics

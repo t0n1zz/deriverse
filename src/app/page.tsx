@@ -13,6 +13,7 @@ import { LongShortPie } from '@/components/dashboard/LongShortPie';
 import { HourlyPerformance } from '@/components/dashboard/HourlyPerformance';
 import { MarketBreakdown } from '@/components/dashboard/MarketBreakdown';
 import { FeeBreakdown } from '@/components/dashboard/FeeBreakdown';
+import { OrderTypeBreakdown } from '@/components/dashboard/OrderTypeBreakdown';
 import { CalendarHeatmap } from '@/components/dashboard/CalendarHeatmap';
 import { ExposureBreakdown } from '@/components/dashboard/ExposureBreakdown';
 import { RDistributionChart } from '@/components/dashboard/RDistributionChart';
@@ -35,6 +36,7 @@ import {
   AlertTriangle,
   ArrowUpRight,
   ArrowDownRight,
+  Clock,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -333,6 +335,35 @@ function DashboardContent() {
               tooltip="The estimated profit (or loss) of your next trade based on your history. If this is positive, your strategy is profitable over time."
             />
             <StatsCard
+              title="Avg Win"
+              value={formatCurrency(analytics.averageWin)}
+              subtitle="Per winning trade"
+              icon={ArrowUpRight}
+              valueClassName="text-green-500"
+              tooltip="Average profit on winning trades. Use with Avg Loss to assess risk/reward."
+            />
+            <StatsCard
+              title="Avg Loss"
+              value={formatCurrency(analytics.averageLoss)}
+              subtitle="Per losing trade"
+              icon={ArrowDownRight}
+              valueClassName="text-red-500"
+              tooltip="Average loss on losing trades (shown as negative). Compare to Avg Win for risk/reward."
+            />
+            <StatsCard
+              title="Avg Duration"
+              value={
+                analytics.averageTradeDuration >= 3600
+                  ? `${Math.floor(analytics.averageTradeDuration / 3600)}h ${Math.floor((analytics.averageTradeDuration % 3600) / 60)}m`
+                  : analytics.averageTradeDuration >= 60
+                    ? `${Math.floor(analytics.averageTradeDuration / 60)}m`
+                    : `${Math.round(analytics.averageTradeDuration)}s`
+              }
+              subtitle="Per closed trade"
+              icon={Clock}
+              tooltip="Average time positions are held before closing. Helps compare swing vs scalp behavior."
+            />
+            <StatsCard
               title="Open Exposure"
               value={
                 initialEquity > 0
@@ -425,6 +456,8 @@ function DashboardContent() {
             <MarketBreakdown height={300} />
             <FeeBreakdown height={300} />
           </div>
+
+          <OrderTypeBreakdown height={220} />
 
           {/* Volume Stats */}
           <div className="grid gap-4 md:grid-cols-3">

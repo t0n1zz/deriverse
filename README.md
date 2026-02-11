@@ -32,6 +32,7 @@ A comprehensive trading analytics dashboard for the [Deriverse](https://derivers
 - **Rolling Performance** - Visualize trend consistency over time
 - **Weekday Analysis** - Identify your best and worst trading days
 - **Exposure Analysis** - Monitor open position sizing and concentration
+- **Order Type Analysis** - Breakdown of Market vs Limit orders
 
 ### Trader Coaching
 - **Automated Insights** - Get personalized feedback on your trading behavior

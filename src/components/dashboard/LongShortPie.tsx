@@ -64,14 +64,14 @@ export function LongShortPie({ className, height }: LongShortPieProps) {
   };
 
   const CustomLegend = ({ payload }: { payload?: Array<{ color: string; value: string }> }) => (
-    <div className="flex justify-center gap-6 mt-4">
+    <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-6 pt-2">
       {payload?.map((entry, index: number) => (
-        <div key={index} className="flex items-center gap-2">
+        <div key={index} className="flex items-center gap-2 shrink-0">
           <div
-            className="w-3 h-3 rounded-full"
+            className="w-3 h-3 rounded-full shrink-0"
             style={{ backgroundColor: entry.color }}
           />
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-muted-foreground whitespace-nowrap">
             {entry.value}: {data[index]?.value} trades
           </span>
         </div>
@@ -82,15 +82,15 @@ export function LongShortPie({ className, height }: LongShortPieProps) {
   return (
     <div className={`rounded-lg border border-border bg-card p-4 flex flex-col ${height ? '' : 'h-full'} ${className ?? ''}`} style={height ? { height } : undefined}>
       <h3 className="text-lg font-semibold mb-2">Position Distribution</h3>
-      <div className="flex-1">
-        <ResponsiveContainer width="100%" height={height ?? "100%"}>
-          <PieChart>
+      <div className="flex-1 min-h-[220px] w-full">
+        <ResponsiveContainer width="100%" height={height ?? "100%"} minHeight={220}>
+          <PieChart margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
             <Pie
               data={data}
               cx="50%"
-              cy="45%"
-              innerRadius={60}
-              outerRadius={80}
+              cy="42%"
+              innerRadius={48}
+              outerRadius={68}
               paddingAngle={2}
               dataKey="value"
             >

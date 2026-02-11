@@ -15,6 +15,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import {
   ChevronUp,
   ChevronDown,
   ChevronLeft,
@@ -22,6 +30,7 @@ import {
   ExternalLink,
   ArrowUpRight,
   ArrowDownRight,
+  Pencil,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -32,7 +41,11 @@ interface TradeTableProps {
 
 export function TradeTable({ trades: propTrades, pageSize = 15 }: TradeTableProps) {
   const storeTrades = useTradeStore(state => state.filteredTrades);
+  const updateTrade = useTradeStore(state => state.updateTrade);
   const trades = propTrades ?? storeTrades;
+
+  const [annotationTradeId, setAnnotationTradeId] = useState<string | null>(null);
+  const [annotationDraft, setAnnotationDraft] = useState('');
 
   const [sort, setSort] = useState<TradeSort>({ field: 'timestamp', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
@@ -118,6 +131,21 @@ export function TradeTable({ trades: propTrades, pageSize = 15 }: TradeTableProp
     );
   };
 
+  const openAnnotationEditor = (trade: Trade) => {
+    setAnnotationTradeId(trade.id);
+    setAnnotationDraft((trade.annotations ?? []).join('\n'));
+  };
+
+  const saveAnnotations = () => {
+    if (!annotationTradeId) return;
+    const lines = annotationDraft
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    updateTrade(annotationTradeId, { annotations: lines });
+    setAnnotationTradeId(null);
+  };
+
   if (trades.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-8 text-center">
@@ -127,9 +155,9 @@ export function TradeTable({ trades: propTrades, pageSize = 15 }: TradeTableProp
   }
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
-        <Table>
+    <div className="space-y-4 min-w-0">
+      <div className="rounded-lg border border-border bg-card overflow-x-auto overflow-y-visible">
+        <Table className="min-w-[800px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead
@@ -149,6 +177,14 @@ export function TradeTable({ trades: propTrades, pageSize = 15 }: TradeTableProp
                 </div>
               </TableHead>
               <TableHead>Side</TableHead>
+              <TableHead
+                className="cursor-pointer hover:text-foreground"
+                onClick={() => handleSort('orderType')}
+              >
+                <div className="flex items-center gap-1">
+                  Type <SortIcon field="orderType" />
+                </div>
+              </TableHead>
               <TableHead
                 className="cursor-pointer hover:text-foreground"
                 onClick={() => handleSort('entryPrice')}
@@ -177,6 +213,7 @@ export function TradeTable({ trades: propTrades, pageSize = 15 }: TradeTableProp
               <TableHead className="text-right">PnL %</TableHead>
               <TableHead>Duration</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="min-w-[120px]">Notes</TableHead>
               <TableHead className="w-10"></TableHead>
             </TableRow>
           </TableHeader>
@@ -191,6 +228,9 @@ export function TradeTable({ trades: propTrades, pageSize = 15 }: TradeTableProp
                 </TableCell>
                 <TableCell>
                   <SideBadge side={trade.side} />
+                </TableCell>
+                <TableCell className="capitalize text-muted-foreground">
+                  {trade.orderType}
                 </TableCell>
                 <TableCell className="font-mono">
                   ${trade.entryPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -228,6 +268,23 @@ export function TradeTable({ trades: propTrades, pageSize = 15 }: TradeTableProp
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={trade.status} />
+                </TableCell>
+                <TableCell className="max-w-[180px]">
+                  <div className="flex items-center gap-1">
+                    <span className="truncate text-sm text-muted-foreground">
+                      {(trade.annotations ?? []).length > 0
+                        ? (trade.annotations ?? []).slice(0, 2).join('; ')
+                        : '—'}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0"
+                      onClick={() => openAnnotationEditor(trade)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </TableCell>
                 <TableCell>
                   <a
@@ -302,6 +359,25 @@ export function TradeTable({ trades: propTrades, pageSize = 15 }: TradeTableProp
           </div>
         </div>
       )}
+
+      <Dialog open={!!annotationTradeId} onOpenChange={(open) => !open && setAnnotationTradeId(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit trade notes</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">One note per line. These are stored locally for your review.</p>
+          <textarea
+            className="min-h-[120px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+            value={annotationDraft}
+            onChange={(e) => setAnnotationDraft(e.target.value)}
+            placeholder="Add notes..."
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAnnotationTradeId(null)}>Cancel</Button>
+            <Button onClick={saveAnnotations}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

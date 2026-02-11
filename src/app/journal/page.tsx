@@ -180,7 +180,7 @@ function JournalContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -210,10 +210,10 @@ function JournalContent() {
 
       {/* Filters and Table */}
       <div className="grid gap-6 lg:grid-cols-4">
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 min-w-0">
           <TradeFilters />
         </div>
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 min-w-0 w-full overflow-hidden">
           <TradeTable trades={displayTrades} pageSize={15} />
         </div>
       </div>

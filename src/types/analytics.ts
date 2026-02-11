@@ -38,6 +38,13 @@ export interface PortfolioAnalytics {
   /** Expected value per trade */
   expectancy: number;
 
+  orderTypeCounts: {
+    market: number;
+    limit: number;
+    stop: number;
+    other: number;
+  };
+
   // ===== Risk Metrics =====
   /** Trade with largest profit */
   largestWin: Trade | null;

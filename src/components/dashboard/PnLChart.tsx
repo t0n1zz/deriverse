@@ -77,16 +77,18 @@ export function PnLChart({ className, initialEquity = 0 }: PnLChartProps) {
   return (
     <div className={`rounded-lg border border-border bg-card p-4 flex flex-col h-full ${className ?? ''}`}>
       <h3 className="text-lg font-semibold mb-4">PnL History</h3>
-      <div className="flex-1">
-        <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+      <div className="flex-1 min-h-[260px] w-full">
+        <ResponsiveContainer width="100%" height="100%" minHeight={260}>
+        <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 28 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
           <XAxis
             dataKey="date"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-            interval="preserveStartEnd"
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+            interval={Math.max(0, Math.floor((chartData.length - 1) / 6))}
+            angle={-35}
+            textAnchor="end"
           />
           <YAxis
             yAxisId="left"

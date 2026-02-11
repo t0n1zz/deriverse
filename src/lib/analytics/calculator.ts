@@ -96,6 +96,12 @@ export function calculateAnalytics(
     profitFactor,
     riskRewardRatio,
     expectancy,
+    orderTypeCounts: {
+      market: trades.filter(t => t.orderType === 'market').length,
+      limit: trades.filter(t => t.orderType === 'limit').length,
+      stop: 0, // Deriverse currently only exposes market/limit in basic history
+      other: 0,
+    },
     largestWin,
     largestLoss,
     maxDrawdown,
