@@ -62,7 +62,7 @@ export function OrderTypeBreakdown({ height = 220 }: OrderTypeBreakdownProps) {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => [`${value} trades`, 'Count']}
+              formatter={(value: number | undefined) => [`${value} trades`, 'Count']}
               contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))' }}
               itemStyle={{ color: 'hsl(var(--popover-foreground))' }}
             />

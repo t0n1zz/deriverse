@@ -21,7 +21,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import {
   ChevronUp,
   ChevronDown,
@@ -238,9 +237,9 @@ export function TradeTable({ trades: propTrades, pageSize = 15 }: TradeTableProp
                 <TableCell className="font-mono text-right">
                   {trade.quantity > 0
                     ? trade.quantity.toLocaleString('en-US', {
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 6,
-                      })
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 6,
+                    })
                     : '-'}
                 </TableCell>
                 <TableCell className="font-mono">
